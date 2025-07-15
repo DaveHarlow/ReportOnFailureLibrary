@@ -9,8 +9,8 @@ public class RegistryTests
     [Fact]
     public void RegistryShouldAllowReporterRegistration()
     {
-        var registry = new ReportOnFailure.Registry();
-        var reporter = new Mock<ReportOnFailure.Interfaces.IReporter>();
+        var registry = new Registry();
+        var reporter = new Mock<Interfaces.IReporter>();
         registry.RegisterReporter(reporter.Object);
         Assert.Single(registry.reporters);
         Assert.Contains(reporter.Object, registry.reporters);
@@ -19,7 +19,7 @@ public class RegistryTests
     [Fact]
     public void RegistryShouldNotAllowNullReporterRegistration()
     {
-        var registry = new ReportOnFailure.Registry();
+        var registry = new Registry();
         Assert.Throws<ArgumentNullException>(() => registry.RegisterReporter(null));
         Assert.Empty(registry.reporters);
     }
@@ -27,8 +27,8 @@ public class RegistryTests
     [Fact]
     public void RegistryShouldAllowReporterUnregistration()
     {
-        var registry = new ReportOnFailure.Registry();
-        var reporter = new Mock<ReportOnFailure.Interfaces.IReporter>();
+        var registry = new Registry();
+        var reporter = new Mock<Interfaces.IReporter>();
         registry.RegisterReporter(reporter.Object);
         Assert.Single(registry.reporters);
 
@@ -39,7 +39,7 @@ public class RegistryTests
     [Fact]
     public void RegistryConstructorCreatesEmptyReporterList()
     {
-        var registry = new ReportOnFailure.Registry();
+        var registry = new Registry();
         Assert.NotNull(registry.reporters);
         Assert.Empty(registry.reporters);
     }
@@ -47,8 +47,8 @@ public class RegistryTests
     [Fact]
     public void RegistryShouldNotAllowDuplicateReporterRegistration()
     {
-        var registry = new ReportOnFailure.Registry();
-        var reporter = new Mock<ReportOnFailure.Interfaces.IReporter>();
+        var registry = new Registry();
+        var reporter = new Mock<Interfaces.IReporter>();
         registry.RegisterReporter(reporter.Object);
         Assert.Single(registry.reporters);
 
@@ -60,9 +60,9 @@ public class RegistryTests
     [Fact]
     public void GetAllReportsShouldMakeEachReporterReport()
     {
-        var registry = new ReportOnFailure.Registry();
-        var reporter1 = new Mock<ReportOnFailure.Interfaces.IReporter>();
-        var reporter2 = new Mock<ReportOnFailure.Interfaces.IReporter>();
+        var registry = new Registry();
+        var reporter1 = new Mock<Interfaces.IReporter>();
+        var reporter2 = new Mock<Interfaces.IReporter>();
         registry.RegisterReporter(reporter1.Object);
         registry.RegisterReporter(reporter2.Object);
         reporter1.Setup(r => r.OutPutData()).Returns("Report 1");
@@ -76,8 +76,8 @@ public class RegistryTests
     [Fact]
     public void SaveAllReportsShouldWriteReportsToFile()
     {
-        var registry = new ReportOnFailure.Registry();
-        var reporter = new Mock<ReportOnFailure.Interfaces.IReporter>();
+        var registry = new Registry();
+        var reporter = new Mock<Interfaces.IReporter>();
         registry.RegisterReporter(reporter.Object);
         reporter.Setup(r => r.OutPutData()).Returns("Report Content");
         var filePath = Path.GetTempFileName();
