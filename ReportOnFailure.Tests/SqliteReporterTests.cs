@@ -1,6 +1,6 @@
 namespace ReportOnFailure.Tests;
 
-using ReportOnFailure.Reporters;
+using Reporters;
 using Microsoft.Data.Sqlite;
 using System;
 

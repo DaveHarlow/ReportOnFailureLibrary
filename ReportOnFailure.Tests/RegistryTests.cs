@@ -1,4 +1,6 @@
 ﻿using Moq;
+using System.IO.Compression;
+
 
 namespace ReportOnFailure.Tests;
 
@@ -69,6 +71,45 @@ public class RegistryTests
         Assert.Equal(2, reports.Count);
         Assert.Contains("Report 1", reports);
         Assert.Contains("Report 2", reports);
+    }
+
+    [Fact]
+    public void SaveAllReportsShouldWriteReportsToFile()
+    {
+        var registry = new ReportOnFailure.Registry();
+        var reporter = new Mock<ReportOnFailure.Interfaces.IReporter>();
+        registry.RegisterReporter(reporter.Object);
+        reporter.Setup(r => r.OutPutData()).Returns("Report Content");
+        var filePath = Path.GetTempFileName();
+        registry.SaveAllReports(filePath);
+        var savedReports = File.ReadAllLines(filePath);
+        Assert.Single(savedReports);
+        Assert.Equal("Report Content", savedReports[0]);
+        File.Delete(filePath); // Clean up
+    }
+
+    [Fact]
+    public void SaveAllReportsAsZipShouldCreateZipWithReports()
+    {
+        var registry = new Registry();
+        var reporter = new Mock<Interfaces.IReporter>();
+        registry.RegisterReporter(reporter.Object);
+        reporter.Setup(r => r.OutPutData()).Returns("Report Content");
+        var zipFilePath = Path.GetTempFileName() + ".zip";
+        registry.SaveAllReportsAsZip(zipFilePath);
+        
+        using (var zip = ZipFile.OpenRead(zipFilePath))
+        {
+            Assert.Single(zip.Entries);
+            using (var entryStream = zip.Entries.First().Open())
+            using (var reader = new StreamReader(entryStream))
+            {
+                var content = reader.ReadToEnd();
+                Assert.Equal("Report Content", content);
+            }
+        }
+        
+        File.Delete(zipFilePath); // Clean up
     }
 }
 
