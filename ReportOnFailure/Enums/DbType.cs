@@ -5,8 +5,7 @@ namespace ReportOnFailure.Enums;
     {
         SqlServer,
         Sqlite,
-        ODBC,
-        OLE
+        ODBC
     }
 
 
