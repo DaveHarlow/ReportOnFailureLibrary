@@ -1,11 +1,9 @@
 namespace ReportOnFailure.Reporters;
 
 using System;
-using System.Data.Common; // For DbProviderFactory
-using System.Linq;
-using System.Text;
-using ReportOnFailure.Interfaces;
-using ReportOnFailure.Enums;
+using System.Data.Common; 
+using Interfaces;
+using Enums;
 
 
 public partial class DbReporter : BaseReporter<DbReporter>, IDbReporter

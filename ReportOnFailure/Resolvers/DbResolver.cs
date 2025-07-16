@@ -3,15 +3,12 @@ namespace ReportOnFailure.Resolvers;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using ReportOnFailure.Enums;
-using ReportOnFailure.Factories;
-using ReportOnFailure.Interfaces;
-using ReportOnFailure.Formatters;
+using Enums;
+using Factories;
+using Interfaces;
+using Formatters;
 
 public class DbResolver : IReportResolverAsync<IDbReporter>, IReportResolverSync<IDbReporter>
 {

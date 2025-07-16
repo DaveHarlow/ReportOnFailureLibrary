@@ -19,7 +19,7 @@ public static class DbProviderFactoryFactory
 
             case DbType.Sqlite:
                 return SqliteFactory.Instance;
-            case DbType.ODBC:
+            case DbType.Odbc:
                 return OdbcFactory.Instance;
             default:
                 throw new ArgumentOutOfRangeException(nameof(dbType), $"No provider factory is configured for the database type '{dbType}'.");

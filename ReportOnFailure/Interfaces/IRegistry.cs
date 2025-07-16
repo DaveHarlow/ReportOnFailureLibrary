@@ -1,6 +1,6 @@
 namespace ReportOnFailure.Interfaces;
 
-using ReportOnFailure.Enums;
+using Enums;
 
 public interface IRegistry
 {

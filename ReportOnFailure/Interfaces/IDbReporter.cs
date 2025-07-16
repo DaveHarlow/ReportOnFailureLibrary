@@ -1,6 +1,6 @@
 namespace ReportOnFailure.Interfaces;
 
-using ReportOnFailure.Enums;
+using Enums;
 using System.Collections.Generic;
 using System.Data.Common;
 
