@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using ReportOnFailure.Enums;
 using ReportOnFailure.Factories;
 using ReportOnFailure.Interfaces;
+using ReportOnFailure.Formatters;
 
 public class DbResolver : IReportResolverAsync<IDbReporter>, IReportResolverSync<IDbReporter>
 {
@@ -36,7 +37,7 @@ public class DbResolver : IReportResolverAsync<IDbReporter>, IReportResolverSync
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         var results = await ReadDataAsync(reader, cancellationToken);
 
-        return FormatResults(results, reporter.ResultsFormat);
+        return FormatResults(results, reporter.ResultsFormat);  
     }
 
     public string ResolveSync(IDbReporter reporter)
@@ -61,7 +62,7 @@ public class DbResolver : IReportResolverAsync<IDbReporter>, IReportResolverSync
         using var reader = command.ExecuteReader();
         var results = ReadData(reader);
 
-        return FormatResults(results, reporter.ResultsFormat);
+        return FormatResults(results, reporter.ResultsFormat);  
     }
 
     private static async Task<List<Dictionary<string, object?>>> ReadDataAsync(DbDataReader reader, CancellationToken cancellationToken)
@@ -96,45 +97,27 @@ public class DbResolver : IReportResolverAsync<IDbReporter>, IReportResolverSync
         return results;
     }
 
-    private static string FormatResults(IReadOnlyCollection<Dictionary<string, object?>> data, ResultsFormat format)
+    private string FormatResults(IReadOnlyCollection<Dictionary<string, object?>> data, ResultsFormat format)
     {
         if (data == null || data.Count == 0)
         {
             return "Query executed successfully. No records were returned.";
         }
 
-        // This formatting logic could also be extracted into its own strategy pattern
-        // for even greater separation of concerns.
-        switch (format)
+        var formatter = GetFormatter(format);
+        return formatter.Format(data);
+    }
+
+    private IResultFormatter GetFormatter(ResultsFormat format)
+    {
+        return format switch
         {
-            case ResultsFormat.Json:
-                return JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
-
-            case ResultsFormat.Csv:
-                var csvBuilder = new StringBuilder();
-                var headers = data.First().Keys;
-                csvBuilder.AppendLine(string.Join(",", headers.Select(h => $"\"{h.Replace("\"", "\"\"")}\"")));
-                foreach (var row in data)
-                {
-                    csvBuilder.AppendLine(string.Join(",", row.Values.Select(v => $"\"{v?.ToString()?.Replace("\"", "\"\"")}\"")));
-                }
-                return csvBuilder.ToString();
-
-            case ResultsFormat.Text:
-                var textBuilder = new StringBuilder();
-                foreach (var row in data)
-                {
-                    textBuilder.AppendLine(string.Join(" | ", row.Select(kvp => $"{kvp.Key}: {kvp.Value ?? "NULL"}")));
-                    textBuilder.AppendLine(new string('-', 20));
-                }
-                return textBuilder.ToString();
-
-            case ResultsFormat.Xml:
-            case ResultsFormat.Html:
-                return $"Result formatting for '{format}' is not yet implemented.";
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(format), $"Unknown results format: {format}");
-        }
+            ResultsFormat.Json => new JsonResultFormatter(),
+            ResultsFormat.Csv => new CsvResultFormatter(),
+            ResultsFormat.Text => new TextResultFormatter(),
+            ResultsFormat.Xml => new NotImplementedResultFormatter(ResultsFormat.Xml.ToString()),
+            ResultsFormat.Html => new NotImplementedResultFormatter(ResultsFormat.Html.ToString()),
+            _ => throw new ArgumentOutOfRangeException(nameof(format), $"Unknown results format: {format}")
+        };
     }
 }

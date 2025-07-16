@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace ReportOnFailure.Tests.Resolvers;
 
 using System;
@@ -7,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using ReportOnFailure.Enums;
 using ReportOnFailure.Reporters;
+using System.Xml.Linq;
 using ReportOnFailure.Resolvers;
 using Xunit;
 
@@ -91,13 +94,76 @@ using Xunit;
             
             var result = _resolver.ResolveSync(reporter);
 
-            var lines = result.Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.RemoveEmptyEntries);
-            Assert.Equal(4, lines.Length);
-            Assert.Equal("\"Id\",\"Name\",\"IsActive\"", lines[0]);
-            Assert.Equal("\"1\",\"Alice\",\"1\"", lines[1]);
-            Assert.Equal("\"2\",\"Bob\",\"0\"", lines[2]);
+             var lines = result.Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.RemoveEmptyEntries);
+             Assert.Equal(4, lines.Length);
+             Assert.Equal("\"Id\",\"Name\",\"IsActive\"", lines[0]);
+             Assert.Equal("\"1\",\"Alice\",\"1\"", lines[1]);
+             Assert.Equal("\"2\",\"Bob\",\"0\"", lines[2]);
         }
 
+        [Fact]
+        public void ResolveSync_WithValidQuery_ReturnsFormattedText()
+        {
+            // Arrange
+            var reporter = new DbReporter()
+                .WithDatabaseType(DbType.Sqlite)
+                .WithConnectionString(SharedConnectionString)
+                .WithQuery("SELECT * FROM Users ORDER BY Id")
+                .WithResultsFormat(ResultsFormat.Text);
+
+            // Act
+            var result = _resolver.ResolveSync(reporter);
+
+            // Assert
+            var expected = new StringBuilder()
+                .AppendLine("Id: 1 | Name: Alice | IsActive: 1")
+                .AppendLine("--------------------")
+                .AppendLine("Id: 2 | Name: Bob | IsActive: 0")
+                .AppendLine("--------------------")
+                .AppendLine("Id: 3 | Name: Charlie | IsActive: 1")
+                .AppendLine("--------------------")
+                .ToString();
+
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public async Task ResolveAsync_WithXmlFormat_ReturnsNotImplementedMessage()
+        {
+            // Arrange
+            var reporter = new DbReporter()
+                .WithDatabaseType(DbType.Sqlite)
+                .WithConnectionString(SharedConnectionString)
+                .WithQuery("SELECT * FROM Users ORDER BY Id")
+                .WithResultsFormat(ResultsFormat.Xml);
+
+            // Act
+            var result = await _resolver.ResolveAsync(reporter);
+
+            // Assert
+            Assert.Equal("Result formatting for 'Xml' is not yet implemented.", result);
+        }
+
+        [Fact]
+        public void ResolveSync_WithHtmlFormat_ReturnsNotImplementedMessage()
+        {
+            // Arrange
+            var reporter = new DbReporter()
+                .WithDatabaseType(DbType.Sqlite)
+                .WithConnectionString(SharedConnectionString)
+                .WithQuery("SELECT * FROM Users ORDER BY Id")
+                .WithResultsFormat(ResultsFormat.Html);
+
+            // Act
+            var result = _resolver.ResolveSync(reporter);
+
+            // Assert
+            Assert.Equal("Result formatting for 'Html' is not yet implemented.", result);
+        }
+
+        
+
+       
         [Fact]
         public void ResolveSync_WithNoResults_ReturnsEmptyMessage()
         {
