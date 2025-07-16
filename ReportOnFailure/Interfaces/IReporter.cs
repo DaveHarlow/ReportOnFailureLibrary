@@ -1,6 +1,8 @@
 namespace ReportOnFailure.Interfaces;
 
+using ReportOnFailure.Enums;
+
 public interface IReporter
 {
-    string OutPutData();
+    public ResultsFormat ResultsFormat { get; set; }
 }
