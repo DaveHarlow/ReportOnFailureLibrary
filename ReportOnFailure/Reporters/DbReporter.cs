@@ -8,13 +8,13 @@ using ReportOnFailure.Interfaces;
 using ReportOnFailure.Enums;
 
 
-public partial class DbReporter : BaseReporter, IDbReporter
+public partial class DbReporter : BaseReporter<DbReporter>, IDbReporter
 {
 
     public DbType DatabaseType { get; set; }
     public string ConnectionString { get; set; }
     public string Query { get; set; }
-    public int CommandTimeout { get; set; } = 30; // Default timeout in seconds
+    public int CommandTimeout { get; set; } = 30;
 
     public List<DbParameter> Parameters { get; set; } = new List<DbParameter>();
 
@@ -49,13 +49,10 @@ public partial class DbReporter : BaseReporter, IDbReporter
         return this;
     }
 
-public DbReporter AddParameters(IEnumerable<DbParameter> parameters)
+    public DbReporter AddParameters(IEnumerable<DbParameter> parameters)
     {
         if (parameters == null) throw new ArgumentNullException(nameof(parameters));
         Parameters.AddRange(parameters);
         return this;
     }
-    // Additional methods for executing the query, handling results, etc. can be added here
-
 }
-

@@ -78,5 +78,25 @@ public class DbReporterTests
         // Assert
         Assert.Equal(2, reporter.Parameters.Count);
     }
+
+    [Fact]
+    public void TestWithExecutionModeOverride()
+    {
+        // Arrange
+        var reporter = new DbReporter().WithExecutionModeOverride(ExecutionMode.Asynchronous);
+
+        // Assert
+        Assert.Equal(ExecutionMode.Asynchronous, reporter.ExecutionModeOverride);
+    }
+
+    [Fact]
+    public void TestWithResultsFormat()
+    {
+        // Arrange
+        var reporter = new DbReporter().WithResultsFormat(ResultsFormat.Json);
+
+        // Assert
+        Assert.Equal(ResultsFormat.Json, reporter.ResultsFormat);
+    }
 }
 

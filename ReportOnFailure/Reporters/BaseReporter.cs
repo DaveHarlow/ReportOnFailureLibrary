@@ -3,14 +3,23 @@ namespace ReportOnFailure.Reporters;
 using ReportOnFailure.Interfaces;
 using ReportOnFailure.Enums;
 
-public class BaseReporter : IReporter
+public abstract class BaseReporter<T> : IReporter where T : BaseReporter<T>
 {
 
     public ResultsFormat ResultsFormat { get; set; }
+    public ExecutionMode? ExecutionModeOverride { get; set; }
+    
 
-    public BaseReporter WithResultsFormat(ResultsFormat format)
+    public T WithResultsFormat(ResultsFormat format)
     {
         ResultsFormat = format;
-        return this;
+        return (T)this;
     }
+
+    public T WithExecutionModeOverride(ExecutionMode mode)
+    {
+        ExecutionModeOverride = mode;
+        return (T)this;
+    }
+    
 }

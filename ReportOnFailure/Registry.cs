@@ -1,5 +1,6 @@
 ﻿using ReportOnFailure.Interfaces;
 using System.IO.Compression;
+using ReportOnFailure.Enums;
 
 
 namespace ReportOnFailure;
@@ -9,24 +10,26 @@ public class Registry : IRegistry
 
   public Registry()
   {
-    reporters = new List<IReporter>();
+    Reporters = new List<IReporter>();
   }
 
-  public List<IReporter> reporters = new();
+  public List<IReporter> Reporters { get; set; }
+
+  public ExecutionMode ExecutionMode { get; set; } = ExecutionMode.Synchronous;
 
   public void RegisterReporter(IReporter reporter)
   {
     if (reporter == null) throw new ArgumentNullException(nameof(reporter));
-    if (!reporters.Contains(reporter))
+    if (!Reporters.Contains(reporter))
     {
-      reporters.Add(reporter);
+      Reporters.Add(reporter);
     }
   }
 
   public void UnRegisterReporter(IReporter reporter)
   {
     if (reporter == null) throw new ArgumentNullException(nameof(reporter));
-    reporters.Remove(reporter);
+    Reporters.Remove(reporter);
   }
 
 }
