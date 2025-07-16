@@ -8,13 +8,28 @@ using System.Threading.Tasks;
 using Enums;
 using Factories;
 using Interfaces;
-using Formatters;
 
-public class DbResolver : IReportResolverAsync<IDbReporter>, IReportResolverSync<IDbReporter>
+public class DbResolver : IDbResolver
 {
-    public async Task<string> ResolveAsync(IDbReporter reporter, CancellationToken cancellationToken = default)
+    private readonly IResultFormatterFactory _formatterFactory;
+    private readonly IDbProviderFactoryFactory _dbProviderFactoryFactory;
+
+
+    public DbResolver(
+        IResultFormatterFactory formatterFactory,
+        IDbProviderFactoryFactory dbProviderFactoryFactory
+    )
     {
-        var factory = DbProviderFactoryFactory.GetFactory(reporter.DatabaseType);
+        _formatterFactory = formatterFactory;
+        _dbProviderFactoryFactory = dbProviderFactoryFactory;
+    }
+
+    public async Task<string> ResolveAsync(
+        IDbReporter reporter,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var factory = _dbProviderFactoryFactory.GetFactory(reporter.DatabaseType);
 
         await using var connection = factory.CreateConnection();
         if (connection == null)
@@ -34,12 +49,12 @@ public class DbResolver : IReportResolverAsync<IDbReporter>, IReportResolverSync
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         var results = await ReadDataAsync(reader, cancellationToken);
 
-        return FormatResults(results, reporter.ResultsFormat);  
+        return FormatResults(results, reporter.ResultsFormat);
     }
 
     public string ResolveSync(IDbReporter reporter)
     {
-        var factory = DbProviderFactoryFactory.GetFactory(reporter.DatabaseType);
+        var factory = _dbProviderFactoryFactory.GetFactory(reporter.DatabaseType);
 
         using var connection = factory.CreateConnection();
         if (connection == null)
@@ -59,7 +74,7 @@ public class DbResolver : IReportResolverAsync<IDbReporter>, IReportResolverSync
         using var reader = command.ExecuteReader();
         var results = ReadData(reader);
 
-        return FormatResults(results, reporter.ResultsFormat);  
+        return FormatResults(results, reporter.ResultsFormat);
     }
 
     private static async Task<List<Dictionary<string, object?>>> ReadDataAsync(DbDataReader reader, CancellationToken cancellationToken)
@@ -94,27 +109,15 @@ public class DbResolver : IReportResolverAsync<IDbReporter>, IReportResolverSync
         return results;
     }
 
-    private string FormatResults(IReadOnlyCollection<Dictionary<string, object?>> data, ResultsFormat format)
+    private string FormatResults(
+        IReadOnlyCollection<Dictionary<string, object?>> data,
+        ResultsFormat format
+    )
     {
         if (data == null || data.Count == 0)
         {
             return "Query executed successfully. No records were returned.";
         }
-
-        var formatter = GetFormatter(format);
-        return formatter.Format(data);
-    }
-
-    private IResultFormatter GetFormatter(ResultsFormat format)
-    {
-        return format switch
-        {
-            ResultsFormat.Json => new JsonResultFormatter(),
-            ResultsFormat.Csv => new CsvResultFormatter(),
-            ResultsFormat.Text => new TextResultFormatter(),
-            ResultsFormat.Xml => new NotImplementedResultFormatter(ResultsFormat.Xml.ToString()),
-            ResultsFormat.Html => new NotImplementedResultFormatter(ResultsFormat.Html.ToString()),
-            _ => throw new ArgumentOutOfRangeException(nameof(format), $"Unknown results format: {format}")
-        };
+        return _formatterFactory.CreateFormatter(format).Format(data);
     }
 }

@@ -8,9 +8,9 @@ using System.Data.Odbc;
 using ReportOnFailure.Enums;
 
 
-public static class DbProviderFactoryFactory
+public class DbProviderFactoryFactory: IDbProviderFactoryFactory
 {
-    public static DbProviderFactory GetFactory(DbType dbType)
+    public DbProviderFactory GetFactory(DbType dbType)
     {
         switch (dbType)
         {
