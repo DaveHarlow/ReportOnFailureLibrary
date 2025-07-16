@@ -11,10 +11,10 @@ public class DbReporterTests
     public void TestWithDatabaseType()
     {
 
-        var reporter = new DbReporter().WithDatabaseType(DbType.SqlServer);
+        var reporter = new DbReporter().WithDatabaseType(DatabaseType.SqlServer);
 
 
-        Assert.Equal(DbType.SqlServer, reporter.DatabaseType);
+        Assert.Equal(DatabaseType.SqlServer, reporter.DatabaseType);
     }
 
     [Fact]

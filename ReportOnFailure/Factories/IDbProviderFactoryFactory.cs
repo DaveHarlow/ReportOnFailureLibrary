@@ -5,5 +5,5 @@ using ReportOnFailure.Enums;
 
 public interface IDbProviderFactoryFactory
 {
-    DbProviderFactory GetFactory(DbType dbType);
+    DbProviderFactory GetFactory(DatabaseType dbType);
 }

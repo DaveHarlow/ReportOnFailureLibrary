@@ -6,7 +6,7 @@ using System.Data.Common;
 
 public interface IDbReporter : IReporter
 {
-    DbType DatabaseType { get; set; }
+    DatabaseType DatabaseType { get; set; }
     string ConnectionString { get; set; }
     int CommandTimeout { get; set; }
     List<DbParameter> Parameters { get; set; }

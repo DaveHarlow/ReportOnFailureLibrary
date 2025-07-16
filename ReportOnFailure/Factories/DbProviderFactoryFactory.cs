@@ -8,18 +8,18 @@ using System.Data.Odbc;
 using ReportOnFailure.Enums;
 
 
-public class DbProviderFactoryFactory: IDbProviderFactoryFactory
+public class DbProviderFactoryFactory : IDbProviderFactoryFactory
 {
-    public DbProviderFactory GetFactory(DbType dbType)
+    public DbProviderFactory GetFactory(DatabaseType dbType)
     {
         switch (dbType)
         {
-            case DbType.SqlServer:
+            case DatabaseType.SqlServer:
                 return SqlClientFactory.Instance;
 
-            case DbType.Sqlite:
+            case DatabaseType.Sqlite:
                 return SqliteFactory.Instance;
-            case DbType.Odbc:
+            case DatabaseType.Odbc:
                 return OdbcFactory.Instance;
             default:
                 throw new ArgumentOutOfRangeException(nameof(dbType), $"No provider factory is configured for the database type '{dbType}'.");

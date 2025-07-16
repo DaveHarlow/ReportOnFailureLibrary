@@ -1,7 +1,7 @@
 namespace ReportOnFailure.Enums;
 
 
-public enum DbType
+public enum DatabaseType
 {
     SqlServer,
     Sqlite,

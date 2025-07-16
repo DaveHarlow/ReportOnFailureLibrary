@@ -9,14 +9,14 @@ using Enums;
 public partial class DbReporter : BaseReporter<DbReporter>, IDbReporter
 {
 
-    public DbType DatabaseType { get; set; }
+    public DatabaseType DatabaseType { get; set; }
     public string ConnectionString { get; set; }
     public string Query { get; set; }
     public int CommandTimeout { get; set; } = 30;
 
     public List<DbParameter> Parameters { get; set; } = new List<DbParameter>();
 
-    public DbReporter WithDatabaseType(DbType dbType)
+    public DbReporter WithDatabaseType(DatabaseType dbType)
     {
         DatabaseType = dbType;
         return this;

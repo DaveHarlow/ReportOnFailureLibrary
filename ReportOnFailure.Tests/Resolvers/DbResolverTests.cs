@@ -65,7 +65,7 @@ public class DbResolverTests : IDisposable
 
 
         var reporter = new DbReporter()
-            .WithDatabaseType(DbType.Sqlite)
+            .WithDatabaseType(DatabaseType.Sqlite)
             .WithConnectionString(SharedConnectionString)
             .WithQuery("SELECT Id, Name, IsActive FROM Users WHERE IsActive = 1 ORDER BY Id")
             .WithResultsFormat(ResultsFormat.Json);
@@ -96,7 +96,7 @@ public class DbResolverTests : IDisposable
         var resolver = new DbResolver(_formatterFactory, _dbProviderFactoryFactory);
 
         var reporter = new DbReporter()
-            .WithDatabaseType(DbType.Sqlite)
+            .WithDatabaseType(DatabaseType.Sqlite)
             .WithConnectionString(SharedConnectionString)
             .WithQuery("SELECT * FROM Users ORDER BY Id")
             .WithResultsFormat(ResultsFormat.Csv);
@@ -118,7 +118,7 @@ public class DbResolverTests : IDisposable
         var resolver = new DbResolver(_formatterFactory, _dbProviderFactoryFactory);
 
         var reporter = new DbReporter()
-            .WithDatabaseType(DbType.Sqlite)
+            .WithDatabaseType(DatabaseType.Sqlite)
             .WithConnectionString(SharedConnectionString)
             .WithQuery("SELECT * FROM Users ORDER BY Id")
             .WithResultsFormat(ResultsFormat.Text);
@@ -143,7 +143,7 @@ public class DbResolverTests : IDisposable
         var resolver = new DbResolver(_formatterFactory, _dbProviderFactoryFactory);
 
         var reporter = new DbReporter()
-            .WithDatabaseType(DbType.Sqlite)
+            .WithDatabaseType(DatabaseType.Sqlite)
             .WithConnectionString(SharedConnectionString)
             .WithQuery("SELECT * FROM Users ORDER BY Id")
             .WithResultsFormat(ResultsFormat.Xml);
@@ -160,7 +160,7 @@ public class DbResolverTests : IDisposable
         var resolver = new DbResolver(_formatterFactory, _dbProviderFactoryFactory);
 
         var reporter = new DbReporter()
-            .WithDatabaseType(DbType.Sqlite)
+            .WithDatabaseType(DatabaseType.Sqlite)
             .WithConnectionString(SharedConnectionString)
             .WithQuery("SELECT * FROM Users ORDER BY Id")
             .WithResultsFormat(ResultsFormat.Html);
@@ -180,7 +180,7 @@ public class DbResolverTests : IDisposable
         var resolver = new DbResolver(_formatterFactory, _dbProviderFactoryFactory);
 
         var reporter = new DbReporter()
-            .WithDatabaseType(DbType.Sqlite)
+            .WithDatabaseType(DatabaseType.Sqlite)
             .WithConnectionString(SharedConnectionString)
             .WithQuery("SELECT * FROM Users WHERE Id = 999");
 
@@ -196,7 +196,7 @@ public class DbResolverTests : IDisposable
         var resolver = new DbResolver(_formatterFactory, _dbProviderFactoryFactory);
         // Arrange
         var reporter = new DbReporter()
-            .WithDatabaseType(DbType.Sqlite)
+            .WithDatabaseType(DatabaseType.Sqlite)
             .WithConnectionString(SharedConnectionString)
             .WithQuery("SELECT * FROM Users WHERE IsActive = @IsActive AND Name LIKE @Name")
             .AddParameter(new SqliteParameter("@IsActive", 1))
