@@ -6,7 +6,7 @@ using Interfaces;
 using Enums;
 
 
-public partial class DbReporter : BaseReporter<DbReporter>, IDbReporter
+public class DbReporter : BaseReporter<DbReporter>, IDbReporter
 {
 
     public DatabaseType DatabaseType { get; set; }

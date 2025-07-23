@@ -9,6 +9,12 @@ public interface IRegistry
 
     List<IReporter> Reporters { get; }
     ExecutionMode ExecutionMode { get; set; }
+    DestinationType DestinationType { get; set; }
+
+    string DestinationLocation { get; set; } 
+
+
+    bool CompressResults { get; set; }
 
 
 }

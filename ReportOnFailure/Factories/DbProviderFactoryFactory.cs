@@ -16,7 +16,6 @@ public class DbProviderFactoryFactory : IDbProviderFactoryFactory
         {
             case DatabaseType.SqlServer:
                 return SqlClientFactory.Instance;
-
             case DatabaseType.Sqlite:
                 return SqliteFactory.Instance;
             case DatabaseType.Odbc:
