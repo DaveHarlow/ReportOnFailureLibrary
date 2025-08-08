@@ -63,6 +63,10 @@ catch (Exception)
     await registry.ExecuteAsync();
     throw; // Re-throw the original exception
 }
+
+//Test passed? Remove the reporters, add ones for the next assert
+registry.UnregisterReporter(apiReporter);
+registry.UnregisterReporter(dbReporter);
 ```
 
 ## Setting Up the Registry
