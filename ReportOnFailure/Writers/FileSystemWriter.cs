@@ -1,10 +1,10 @@
 ﻿namespace ReportOnFailure.Writers;
 
+using Interfaces;
+using Strategies;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Interfaces;
-using Strategies;
 
 public class FileSystemWriter : IFileSystemWriter
 {

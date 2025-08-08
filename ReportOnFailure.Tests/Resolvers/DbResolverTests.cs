@@ -2,18 +2,15 @@ using System.Text;
 
 namespace ReportOnFailure.Tests.Resolvers;
 
+using Enums;
+using Factories;
+using Microsoft.Data.Sqlite;
+using Reporters;
+using ReportOnFailure.Resolvers;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Data.Sqlite;
-using ReportOnFailure.Resolvers;
-using ReportOnFailure.Formatters;
-using Enums;
-using Reporters;
-using Interfaces;
 using Xunit;
-using Factories;
-using Moq;
 
 
 public class DbResolverTests : IDisposable
@@ -60,7 +57,7 @@ public class DbResolverTests : IDisposable
     public async Task ResolveAsync_WithValidQuery_ReturnsFormattedJson()
     {
 
-        
+
         var resolver = new DbResolver(_formatterFactory, _dbProviderFactoryFactory);
 
 
@@ -90,7 +87,7 @@ public class DbResolverTests : IDisposable
     }
 
     [Fact]
-    public void ResolveSync_WithValidQuery_ReturnsFormattedCsv() 
+    public void ResolveSync_WithValidQuery_ReturnsFormattedCsv()
     {
 
         var resolver = new DbResolver(_formatterFactory, _dbProviderFactoryFactory);
@@ -194,7 +191,7 @@ public class DbResolverTests : IDisposable
     {
 
         var resolver = new DbResolver(_formatterFactory, _dbProviderFactoryFactory);
-        
+
         var reporter = new DbReporter()
             .WithDatabaseType(DatabaseType.Sqlite)
             .WithConnectionString(SharedConnectionString)
@@ -203,10 +200,10 @@ public class DbResolverTests : IDisposable
             .AddParameter(new SqliteParameter("@Name", "A%"))
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = resolver.ResolveSync(reporter);
 
-        
+
         Assert.NotNull(result);
         using var jsonDoc = JsonDocument.Parse(result);
         var root = jsonDoc.RootElement;

@@ -1,6 +1,5 @@
 ﻿namespace ReportOnFailure.Authentication;
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 

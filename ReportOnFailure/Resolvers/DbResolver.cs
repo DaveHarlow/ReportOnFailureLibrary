@@ -1,13 +1,13 @@
 namespace ReportOnFailure.Resolvers;
 
+using Enums;
+using Factories;
+using Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
-using Enums;
-using Factories;
-using Interfaces;
 
 public class DbResolver : IDbResolver
 {

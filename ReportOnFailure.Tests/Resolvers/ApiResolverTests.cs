@@ -4,22 +4,12 @@ using ReportOnFailure.Enums;
 using ReportOnFailure.Factories;
 using ReportOnFailure.Reporters;
 using ReportOnFailure.Resolvers;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
-using System.Text.Unicode;
-using System.Threading;
-using System.Threading.Tasks;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 using WireMock.Settings;
-using Xunit;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ReportOnFailure.Tests.Resolvers;
 
@@ -64,7 +54,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithGetMethod_SendsGetRequest()
     {
-        
+
         SetupSuccessfulResponse("/api/test", "GET", "Test GET response");
 
         var reporter = new ApiReporter()
@@ -73,10 +63,10 @@ public class ApiResolverTests : IDisposable
             .WithMethod(ApiHttpMethod.GET)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("Test GET response", result);
         VerifyRequestMade("/api/test", "GET");
     }
@@ -84,7 +74,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithPostMethod_SendsPostRequest()
     {
-        
+
         const string requestBody = "{\"name\": \"test\", \"value\": \"data\"}";
         SetupSuccessfulResponse("/api/create", "POST", "Created successfully", requestBody);
 
@@ -95,10 +85,10 @@ public class ApiResolverTests : IDisposable
             .WithJsonBody(requestBody)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("Created successfully", result);
         VerifyRequestMade("/api/create", "POST");
     }
@@ -106,7 +96,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithPutMethod_SendsPutRequest()
     {
-        
+
         const string requestBody = "{\"id\": 1, \"name\": \"updated\"}";
         SetupSuccessfulResponse("/api/update/1", "PUT", "Updated successfully", requestBody);
 
@@ -117,10 +107,10 @@ public class ApiResolverTests : IDisposable
             .WithJsonBody(requestBody)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("Updated successfully", result);
         VerifyRequestMade("/api/update/1", "PUT");
     }
@@ -128,7 +118,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithPatchMethod_SendsPatchRequest()
     {
-        
+
         const string requestBody = "{\"name\": \"patched\"}";
         SetupSuccessfulResponse("/api/patch/1", "PATCH", "Patched successfully", requestBody);
 
@@ -139,10 +129,10 @@ public class ApiResolverTests : IDisposable
             .WithJsonBody(requestBody)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("Patched successfully", result);
         VerifyRequestMade("/api/patch/1", "PATCH");
     }
@@ -150,7 +140,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithDeleteMethod_SendsDeleteRequest()
     {
-        
+
         SetupSuccessfulResponse("/api/delete/1", "DELETE", "Deleted successfully");
 
         var reporter = new ApiReporter()
@@ -159,10 +149,10 @@ public class ApiResolverTests : IDisposable
             .WithMethod(ApiHttpMethod.DELETE)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("Deleted successfully", result);
         VerifyRequestMade("/api/delete/1", "DELETE");
     }
@@ -170,7 +160,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithHeadMethod_SendsHeadRequest()
     {
-        
+
         _mockServer
             .Given(Request.Create().WithPath("/api/head").UsingHead())
             .RespondWith(Response.Create()
@@ -184,10 +174,10 @@ public class ApiResolverTests : IDisposable
             .WithMethod(ApiHttpMethod.HEAD)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("200", result);
         VerifyRequestMade("/api/head", "HEAD");
     }
@@ -195,7 +185,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithOptionsMethod_SendsOptionsRequest()
     {
-        
+
         _mockServer
             .Given(Request.Create().WithPath("/api/options").UsingOptions())
             .RespondWith(Response.Create()
@@ -209,10 +199,10 @@ public class ApiResolverTests : IDisposable
             .WithMethod(ApiHttpMethod.OPTIONS)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("200", result);
         Assert.Contains("GET, POST, PUT, DELETE", result);
         VerifyRequestMade("/api/options", "OPTIONS");
@@ -225,7 +215,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithBearerToken_IncludesAuthorizationHeader()
     {
-        
+
         const string bearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
 
         _mockServer
@@ -244,10 +234,10 @@ public class ApiResolverTests : IDisposable
             .WithBearerToken(bearerToken)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("Protected resource accessed", result);
         VerifyAuthorizationHeader($"Bearer {bearerToken}");
     }
@@ -255,7 +245,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithBasicAuth_IncludesBasicAuthHeader()
     {
-        
+
         const string username = "testuser";
         const string password = "testpass";
         var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
@@ -276,10 +266,10 @@ public class ApiResolverTests : IDisposable
             .WithBasicAuth(username, password)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("Basic auth successful", result);
         VerifyAuthorizationHeader($"Basic {credentials}");
     }
@@ -287,7 +277,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithApiKeyInHeader_IncludesApiKeyHeader()
     {
-        
+
         const string apiKey = "test-api-key-12345";
 
         _mockServer
@@ -306,10 +296,10 @@ public class ApiResolverTests : IDisposable
             .WithApiKey("X-API-Key", apiKey, inHeader: true)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("API key auth successful", result);
         VerifyHeaderExists("X-API-Key", apiKey);
     }
@@ -317,7 +307,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithApiKeyInQuery_IncludesApiKeyInQueryString()
     {
-        
+
         const string apiKey = "test-api-key-query";
 
         _mockServer
@@ -336,10 +326,10 @@ public class ApiResolverTests : IDisposable
             .WithApiKey("api_key", apiKey, inHeader: false)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("Query API key auth successful", result);
         VerifyQueryParameter("api_key", apiKey);
     }
@@ -347,7 +337,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithJwtTokenProvider_FetchesAndUsesToken()
     {
-        
+
         const string jwtToken = "jwt.from.provider.token";
         var mockJwtProvider = new Mock<IJwtTokenProvider>();
         mockJwtProvider.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
@@ -369,10 +359,10 @@ public class ApiResolverTests : IDisposable
             .WithJwtProvider(mockJwtProvider.Object)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("JWT auth successful", result);
         mockJwtProvider.Verify(p => p.GetTokenAsync(It.IsAny<CancellationToken>()), Times.Once);
         VerifyAuthorizationHeader($"Bearer {jwtToken}");
@@ -381,7 +371,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithExpiredJwtToken_RefreshesAndRetries()
     {
-        
+
         const string expiredToken = "expired.jwt.token";
         const string refreshedToken = "refreshed.jwt.token";
 
@@ -415,10 +405,10 @@ public class ApiResolverTests : IDisposable
             .WithJwtProvider(mockJwtProvider.Object)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("Access granted after refresh", result);
         mockJwtProvider.Verify(p => p.GetTokenAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
         mockJwtProvider.Verify(p => p.RefreshTokenAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -431,7 +421,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithJsonBody_SendsJsonContent()
     {
-        
+
         const string jsonBody = "{\"name\": \"test\", \"value\": 123}";
 
         _mockServer
@@ -452,10 +442,10 @@ public class ApiResolverTests : IDisposable
             .WithJsonBody(jsonBody)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("JSON received", result);
         VerifyContentType("application/json");
     }
@@ -463,7 +453,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithXmlBody_SendsXmlContent()
     {
-        
+
         const string xmlBody = "<root><name>test</name><value>123</value></root>";
 
         _mockServer
@@ -484,10 +474,10 @@ public class ApiResolverTests : IDisposable
             .WithXmlBody(xmlBody)
             .WithResultsFormat(ResultsFormat.Xml);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("XML received", result);
         VerifyContentType("application/xml");
     }
@@ -495,7 +485,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithFormData_SendsFormUrlEncodedContent()
     {
-        
+
         var formData = new Dictionary<string, string>
         {
             ["username"] = "testuser",
@@ -519,10 +509,10 @@ public class ApiResolverTests : IDisposable
             .WithFormData(formData)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("Form data received", result);
         VerifyContentType("application/x-www-form-urlencoded");
     }
@@ -530,7 +520,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithTextBody_SendsTextContent()
     {
-        
+
         const string textBody = "Plain text content for the API";
 
         _mockServer
@@ -551,10 +541,10 @@ public class ApiResolverTests : IDisposable
             .WithTextBody(textBody)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("Text received", result);
         VerifyContentType("text/plain");
     }
@@ -566,7 +556,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithQueryParameters_IncludesParametersInUrl()
     {
-        
+
         _mockServer
             .Given(Request.Create()
                 .WithPath("/api/search")
@@ -587,10 +577,10 @@ public class ApiResolverTests : IDisposable
             .WithQueryParameter("offset", 0)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("Search results", result);
         VerifyQueryParameter("q", "test query");
         VerifyQueryParameter("limit", "10");
@@ -600,7 +590,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithCustomHeaders_IncludesHeaders()
     {
-        
+
         _mockServer
             .Given(Request.Create()
                 .WithPath("/api/headers")
@@ -621,10 +611,10 @@ public class ApiResolverTests : IDisposable
             .WithHeader("X-Custom-Header", "custom-value")
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("Headers received", result);
         VerifyHeaderExists("User-Agent", "ReportOnFailure/1.0");
         VerifyHeaderExists("Accept", "application/json");
@@ -638,7 +628,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_With404Response_ReturnsErrorResponse()
     {
-        
+
         _mockServer
             .Given(Request.Create().WithPath("/api/notfound").UsingGet())
             .RespondWith(Response.Create()
@@ -651,10 +641,10 @@ public class ApiResolverTests : IDisposable
             .WithMethod(ApiHttpMethod.GET)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("404", result);
         Assert.Contains("Not Found", result);
         Assert.Contains("\"IsSuccess\":false", result);
@@ -663,7 +653,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_With500Response_ReturnsServerErrorResponse()
     {
-        
+
         _mockServer
             .Given(Request.Create().WithPath("/api/error").UsingGet())
             .RespondWith(Response.Create()
@@ -676,10 +666,10 @@ public class ApiResolverTests : IDisposable
             .WithMethod(ApiHttpMethod.GET)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = await _apiResolver.ResolveAsync(reporter);
 
-        
+
         Assert.Contains("500", result);
         Assert.Contains("Internal Server Error", result);
         Assert.Contains("\"IsSuccess\":false", result);
@@ -688,29 +678,29 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_WithTimeout_CancelsAfterTimeoutReached()
     {
-        
+
         _mockServer
             .Given(Request.Create().WithPath("/api/slow").UsingGet())
             .RespondWith(Response.Create()
                 .WithStatusCode(200)
-                .WithDelay(TimeSpan.FromSeconds(10)) 
+                .WithDelay(TimeSpan.FromSeconds(10))
                 .WithBody("Slow response"));
 
         var reporter = new ApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/slow")
             .WithMethod(ApiHttpMethod.GET)
-            .WithTimeout(2) 
+            .WithTimeout(2)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         await Assert.ThrowsAsync<TaskCanceledException>(() => _apiResolver.ResolveAsync(reporter));
     }
 
     [Fact]
     public async Task ResolveAsync_WithCancellationToken_CancelsRequest()
     {
-        
+
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -720,7 +710,7 @@ public class ApiResolverTests : IDisposable
             .WithMethod(ApiHttpMethod.GET)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         await Assert.ThrowsAsync<TaskCanceledException>(() =>
             _apiResolver.ResolveAsync(reporter, cts.Token));
     }
@@ -732,7 +722,7 @@ public class ApiResolverTests : IDisposable
     [Fact]
     public void ResolveSync_WithGetMethod_ReturnsResponse()
     {
-        
+
         SetupSuccessfulResponse("/api/sync", "GET", "Sync response");
 
         var reporter = new ApiReporter()
@@ -741,10 +731,10 @@ public class ApiResolverTests : IDisposable
             .WithMethod(ApiHttpMethod.GET)
             .WithResultsFormat(ResultsFormat.Json);
 
-        
+
         var result = _apiResolver.ResolveSync(reporter);
 
-        
+
         Assert.Contains("Sync response", result);
         VerifyRequestMade("/api/sync", "GET");
     }

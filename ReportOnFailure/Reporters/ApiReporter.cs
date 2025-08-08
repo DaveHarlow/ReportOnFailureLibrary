@@ -30,7 +30,7 @@ public class ApiReporter : BaseReporter<ApiReporter>, IApiReporter
 
     public IJwtTokenProvider? JwtTokenProvider { get; set; }
 
-    
+
     public ApiReporter WithJwtProvider(IJwtTokenProvider tokenProvider)
     {
         JwtTokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
@@ -54,7 +54,7 @@ public class ApiReporter : BaseReporter<ApiReporter>, IApiReporter
         return this;
     }
 
-    
+
     public ApiReporter WithBaseUrl(string baseUrl)
     {
         BaseUrl = baseUrl ?? throw new ArgumentNullException(nameof(baseUrl));
@@ -88,7 +88,7 @@ public class ApiReporter : BaseReporter<ApiReporter>, IApiReporter
         return this;
     }
 
-    
+
     public ApiReporter WithHeader(string name, string value)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
@@ -109,7 +109,7 @@ public class ApiReporter : BaseReporter<ApiReporter>, IApiReporter
         return this;
     }
 
-    
+
     public ApiReporter WithQueryParameter(string name, object value)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
@@ -130,7 +130,7 @@ public class ApiReporter : BaseReporter<ApiReporter>, IApiReporter
         return this;
     }
 
-    
+
     public ApiReporter WithJsonBody(string jsonBody, Encoding? encoding = null)
     {
         RequestBody = jsonBody;
@@ -169,7 +169,7 @@ public class ApiReporter : BaseReporter<ApiReporter>, IApiReporter
         return this;
     }
 
-    
+
     public ApiReporter WithFormData(string name, string value)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
@@ -192,7 +192,7 @@ public class ApiReporter : BaseReporter<ApiReporter>, IApiReporter
         return this;
     }
 
-    
+
     public ApiReporter WithBearerToken(string token)
     {
         ArgumentException.ThrowIfNullOrEmpty(token);
@@ -231,7 +231,7 @@ public class ApiReporter : BaseReporter<ApiReporter>, IApiReporter
         return this;
     }
 
-    
+
     public string BuildFullUrl()
     {
         var baseUrl = BaseUrl.TrimEnd('/');

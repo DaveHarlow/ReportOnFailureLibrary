@@ -1,9 +1,9 @@
 ﻿namespace ReportOnFailure.Writers.Strategies;
 
+using Interfaces;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Interfaces;
 
 public class UncompressedFileStrategy : ICompressionStrategy
 {

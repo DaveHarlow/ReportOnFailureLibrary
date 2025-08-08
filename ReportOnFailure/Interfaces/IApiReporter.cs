@@ -1,11 +1,11 @@
-﻿using System.Text;
-using ReportOnFailure.Authentication;
+﻿using ReportOnFailure.Authentication;
+using System.Text;
 
 namespace ReportOnFailure.Interfaces;
 
+using Enums;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
-using Enums;
 
 public interface IApiReporter : IReporter
 {

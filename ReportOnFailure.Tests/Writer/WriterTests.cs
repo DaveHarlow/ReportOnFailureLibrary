@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using ReportOnFailure.Enums;
+﻿using ReportOnFailure.Enums;
 using ReportOnFailure.Factories;
 using ReportOnFailure.Writers;
 using ReportOnFailure.Writers.Strategies;
-using Xunit;
+using System.IO.Compression;
+using System.Text;
 
 namespace ReportOnFailure.Tests.Writer;
 
@@ -147,7 +140,7 @@ public class WriterTests : IDisposable
 
         var filePath = Path.Combine(_testDirectory, fileName);
         Assert.True(File.Exists(filePath));
-        
+
         var writtenContent = File.ReadAllText(filePath);
         Assert.Equal(content, writtenContent);
     }
@@ -163,7 +156,7 @@ public class WriterTests : IDisposable
 
         var filePath = Path.Combine(_testDirectory, fileName);
         Assert.True(File.Exists(filePath));
-        
+
         var writtenContent = await File.ReadAllTextAsync(filePath);
         Assert.Equal(content, writtenContent);
     }
@@ -181,11 +174,11 @@ public class WriterTests : IDisposable
         Assert.True(File.Exists(zipPath));
         Assert.False(File.Exists(Path.Combine(_testDirectory, fileName)));
 
-        
+
         using var archive = ZipFile.OpenRead(zipPath);
         var entry = Assert.Single(archive.Entries);
         Assert.Equal(fileName, entry.Name);
-        
+
         using var stream = entry.Open();
         using var reader = new StreamReader(stream);
         var extractedContent = reader.ReadToEnd();
@@ -203,12 +196,12 @@ public class WriterTests : IDisposable
 
         var zipPath = Path.Combine(_testDirectory, "test_async.zip");
         Assert.True(File.Exists(zipPath));
-        
-        
+
+
         using var archive = ZipFile.OpenRead(zipPath);
         var entry = Assert.Single(archive.Entries);
         Assert.Equal(fileName, entry.Name);
-        
+
         using var stream = entry.Open();
         using var reader = new StreamReader(stream);
         var extractedContent = reader.ReadToEnd();
@@ -226,7 +219,7 @@ public class WriterTests : IDisposable
 
         var filePath = Path.Combine(_testDirectory, fileName);
         Assert.True(File.Exists(filePath));
-        
+
         var writtenContent = File.ReadAllText(filePath);
         Assert.Equal(content, writtenContent);
     }
@@ -242,7 +235,7 @@ public class WriterTests : IDisposable
 
         var filePath = Path.Combine(_testDirectory, fileName);
         Assert.True(File.Exists(filePath));
-        
+
         var writtenContent = await File.ReadAllTextAsync(filePath);
         Assert.Equal(content, writtenContent);
     }
@@ -254,7 +247,7 @@ public class WriterTests : IDisposable
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        await Assert.ThrowsAsync<TaskCanceledException>(() => 
+        await Assert.ThrowsAsync<TaskCanceledException>(() =>
             writer.WriteAsync("content", "test.txt", cts.Token));
     }
 
@@ -273,7 +266,7 @@ public class WriterTests : IDisposable
 
         var filePath = Path.Combine(_testDirectory, fileName);
         Assert.True(File.Exists(filePath));
-        
+
         var writtenContent = File.ReadAllText(filePath);
         Assert.Equal(content, writtenContent);
     }
@@ -289,7 +282,7 @@ public class WriterTests : IDisposable
 
         var filePath = Path.Combine(_testDirectory, fileName);
         Assert.True(File.Exists(filePath));
-        
+
         var writtenContent = await File.ReadAllTextAsync(filePath);
         Assert.Equal(content, writtenContent);
     }
@@ -324,11 +317,11 @@ public class WriterTests : IDisposable
         var zipPath = Path.Combine(_testDirectory, "zip_strategy_test.zip");
         Assert.True(File.Exists(zipPath));
 
-        
+
         using var archive = ZipFile.OpenRead(zipPath);
         var entry = Assert.Single(archive.Entries);
         Assert.Equal(fileName, entry.Name);
-        
+
         using var stream = entry.Open();
         using var reader = new StreamReader(stream);
         var extractedContent = reader.ReadToEnd();
@@ -347,11 +340,11 @@ public class WriterTests : IDisposable
         var zipPath = Path.Combine(_testDirectory, "zip_strategy_test_async.zip");
         Assert.True(File.Exists(zipPath));
 
-        
+
         using var archive = ZipFile.OpenRead(zipPath);
         var entry = Assert.Single(archive.Entries);
         Assert.Equal(fileName, entry.Name);
-        
+
         using var stream = entry.Open();
         using var reader = new StreamReader(stream);
         var extractedContent = reader.ReadToEnd();
@@ -383,7 +376,7 @@ public class WriterTests : IDisposable
         var zipPath = Path.Combine(_testDirectory, "special_chars.zip");
         Assert.True(File.Exists(zipPath));
 
-        
+
         using var archive = ZipFile.OpenRead(zipPath);
         var entry = Assert.Single(archive.Entries);
         using var stream = entry.Open();
@@ -433,7 +426,7 @@ public class WriterTests : IDisposable
     {
         var factory = new WriterFactory();
 
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
             factory.CreateWriter(destinationType, "/test/location"));
     }
 
@@ -443,7 +436,7 @@ public class WriterTests : IDisposable
         var factory = new WriterFactory();
         const DestinationType invalidType = (DestinationType)999;
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => 
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
             factory.CreateWriter(invalidType, "/test/location"));
     }
 
@@ -454,7 +447,7 @@ public class WriterTests : IDisposable
     [Fact]
     public async Task FileSystemWriter_WriteMultipleFiles_WithMixedCompression()
     {
-        
+
         var uncompressedWriter = new FileSystemWriter(_testDirectory, compressResults: false);
         var compressedWriter = new FileSystemWriter(_testDirectory, compressResults: true);
 
@@ -463,23 +456,23 @@ public class WriterTests : IDisposable
         const string fileName1 = "uncompressed.txt";
         const string fileName2 = "compressed.txt";
 
-        
+
         await uncompressedWriter.WriteAsync(content1, fileName1);
         await compressedWriter.WriteAsync(content2, fileName2);
 
-        
+
         var uncompressedPath = Path.Combine(_testDirectory, fileName1);
         Assert.True(File.Exists(uncompressedPath));
         Assert.Equal(content1, await File.ReadAllTextAsync(uncompressedPath));
 
-        
+
         var compressedPath = Path.Combine(_testDirectory, "compressed.zip");
         Assert.True(File.Exists(compressedPath));
-        
+
         using var archive = ZipFile.OpenRead(compressedPath);
         var entry = Assert.Single(archive.Entries);
         Assert.Equal(fileName2, entry.Name);
-        
+
         using var stream = entry.Open();
         using var reader = new StreamReader(stream);
         var extractedContent = reader.ReadToEnd();
@@ -494,10 +487,10 @@ public class WriterTests : IDisposable
         const string originalContent = "Original content";
         const string newContent = "New content";
 
-        
+
         writer.Write(originalContent, fileName);
-        
-        
+
+
         writer.Write(newContent, fileName);
 
         var filePath = Path.Combine(_testDirectory, fileName);
@@ -509,7 +502,7 @@ public class WriterTests : IDisposable
     public void FileSystemWriter_WriteLargeContent_HandlesCorrectly()
     {
         var writer = new FileSystemWriter(_testDirectory, compressResults: true);
-        
+
         var largeContent = new string('A', 1024 * 1024);
         const string fileName = "large_file.txt";
 
@@ -518,13 +511,13 @@ public class WriterTests : IDisposable
         var zipPath = Path.Combine(_testDirectory, "large_file.zip");
         Assert.True(File.Exists(zipPath));
 
-        
+
         using var archive = ZipFile.OpenRead(zipPath);
         var entry = Assert.Single(archive.Entries);
         using var stream = entry.Open();
         using var reader = new StreamReader(stream);
         var extractedContent = reader.ReadToEnd();
-        
+
         Assert.Equal(largeContent.Length, extractedContent.Length);
         Assert.Equal(largeContent, extractedContent);
     }

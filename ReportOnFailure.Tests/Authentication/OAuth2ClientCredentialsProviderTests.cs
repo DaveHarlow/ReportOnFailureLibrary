@@ -15,7 +15,7 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
     {
         _mockServer = WireMockServer.Start(new WireMockServerSettings
         {
-            Port = 0, 
+            Port = 0,
             StartAdminInterface = false
         });
 
@@ -46,7 +46,7 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
     [Fact]
     public async Task GetTokenAsync_FirstCall_FetchesNewToken()
     {
-        
+
         var tokenEndpoint = $"{_mockServer.Urls[0]}/oauth/token";
         var provider = new OAuth2ClientCredentialsProvider(
             tokenEndpoint,
@@ -56,7 +56,7 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
 
         var result = await provider.GetTokenAsync();
 
-        
+
         Assert.Equal("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token", result);
     }
 
@@ -69,17 +69,17 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
     [InlineData("   ")]
     public async Task IsTokenValidAsync_WithNullOrEmptyToken_ReturnsFalse(string? token)
     {
-        
+
         var provider = new OAuth2ClientCredentialsProvider(
             $"{_mockServer.Urls[0]}/oauth/token",
             "test-client",
             "test-secret",
             httpClient: _httpClient);
 
-        
+
         var result = await provider.IsTokenValidAsync(token!);
 
-        
+
         Assert.False(result);
     }
 
@@ -95,24 +95,24 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
     [InlineData("part1.part2.")]
     public async Task IsTokenValidAsync_WithInvalidJwtStructure_ReturnsFalse(string invalidToken)
     {
-        
+
         var provider = new OAuth2ClientCredentialsProvider(
             $"{_mockServer.Urls[0]}/oauth/token",
             "test-client",
             "test-secret",
             httpClient: _httpClient);
 
-        
+
         var result = await provider.IsTokenValidAsync(invalidToken);
 
-        
+
         Assert.False(result);
     }
 
     [Fact]
     public async Task IsTokenValidAsync_WithValidStructureButNotCached_ReturnsFalse()
     {
-        
+
         var provider = new OAuth2ClientCredentialsProvider(
             $"{_mockServer.Urls[0]}/oauth/token",
             "test-client",
@@ -121,17 +121,17 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
 
         var validStructureToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
-        
+
         var result = await provider.IsTokenValidAsync(validStructureToken);
 
-        
+
         Assert.False(result);
     }
 
     [Fact]
     public async Task IsTokenValidAsync_WithCachedValidToken_ReturnsTrue()
     {
-        
+
         const string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
 
         SetupTokenEndpointWithToken(token, 3600);
@@ -142,24 +142,24 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
             "test-secret",
             httpClient: _httpClient);
 
-        
+
         var cachedToken = await provider.GetTokenAsync();
 
-        
+
         var result = await provider.IsTokenValidAsync(cachedToken);
 
-        
+
         Assert.True(result);
     }
 
     [Fact]
     public async Task IsTokenValidAsync_WithCachedExpiredToken_ReturnsFalse()
     {
-        
+
         const string expiredToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.expired.token";
 
-        
-        SetupTokenEndpointWithToken(expiredToken, 1); 
+
+        SetupTokenEndpointWithToken(expiredToken, 1);
 
         var provider = new OAuth2ClientCredentialsProvider(
             $"{_mockServer.Urls[0]}/oauth/token",
@@ -167,23 +167,23 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
             "test-secret",
             httpClient: _httpClient);
 
-        
+
         var cachedToken = await provider.GetTokenAsync();
 
-        
+
         await Task.Delay(TimeSpan.FromSeconds(2));
 
-        
+
         var result = await provider.IsTokenValidAsync(cachedToken);
 
-        
-        Assert.False(result); 
+
+        Assert.False(result);
     }
 
     [Fact]
     public async Task IsTokenValidAsync_WithDifferentTokenThanCached_ReturnsFalse()
     {
-        
+
         const string cachedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.cached.token";
         const string differentToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.different.token";
 
@@ -195,19 +195,19 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
             "test-secret",
             httpClient: _httpClient);
 
-        
+
         await provider.GetTokenAsync();
 
         var result = await provider.IsTokenValidAsync(differentToken);
 
-        
-        Assert.False(result); 
+
+        Assert.False(result);
     }
 
     [Fact]
     public async Task IsTokenValidAsync_WithCancellationToken_PropagatesToken()
     {
-        
+
         using var cts = new CancellationTokenSource();
         var provider = new OAuth2ClientCredentialsProvider(
             $"{_mockServer.Urls[0]}/oauth/token",
@@ -219,7 +219,7 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
 
         cts.Cancel();
         var result = await provider.IsTokenValidAsync(token, cts.Token);
-        
+
         Assert.False(result);
     }
 
@@ -229,24 +229,24 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
     [InlineData("header.payload.signature")]
     public async Task IsTokenValidAsync_WithValidJwtStructure_ValidatesStructure(string validJwtStructure)
     {
-        
+
         var provider = new OAuth2ClientCredentialsProvider(
             $"{_mockServer.Urls[0]}/oauth/token",
             "test-client",
             "test-secret",
             httpClient: _httpClient);
 
-        
+
         var result = await provider.IsTokenValidAsync(validJwtStructure);
 
         Assert.False(result);
     }
 
-    
+
     [Fact]
     public async Task IsTokenValidAsync_WithTokenContainingSpecialCharacters_HandlesGracefully()
     {
-        
+
         var provider = new OAuth2ClientCredentialsProvider(
             $"{_mockServer.Urls[0]}/oauth/token",
             "test-client",
@@ -255,38 +255,38 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
 
         const string tokenWithSpecialChars = "header+special/chars.payload-with_underscores.signature=with=equals";
 
-        
+
         var result = await provider.IsTokenValidAsync(tokenWithSpecialChars);
 
-        
-        Assert.False(result); 
+
+        Assert.False(result);
     }
 
     [Fact]
     public async Task IsTokenValidAsync_WithVeryLongToken_HandlesGracefully()
     {
-        
+
         var provider = new OAuth2ClientCredentialsProvider(
             $"{_mockServer.Urls[0]}/oauth/token",
             "test-client",
             "test-secret",
             httpClient: _httpClient);
 
-        
+
         var longPart = new string('a', 10000);
         var veryLongToken = $"{longPart}.{longPart}.{longPart}";
 
-        
+
         var result = await provider.IsTokenValidAsync(veryLongToken);
 
-        
-        Assert.False(result); 
+
+        Assert.False(result);
     }
 
     [Fact]
     public async Task IsTokenValidAsync_ConcurrentCalls_AreThreadSafe()
     {
-        
+
         const string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.concurrent.token";
 
         SetupTokenEndpointWithToken(token, 3600);
@@ -297,7 +297,7 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
             "test-secret",
             httpClient: _httpClient);
 
-        
+
         await provider.GetTokenAsync();
 
         var tasks = new Task<bool>[10];
@@ -308,16 +308,16 @@ public class OAuth2ClientCredentialsProviderTests : IDisposable
 
         var results = await Task.WhenAll(tasks);
 
-        
+
         Assert.All(results, result => Assert.True(result));
     }
 
     #endregion
 
-    
+
     private void SetupTokenEndpointWithToken(string token, int expiresIn)
     {
-        _mockServer.Reset(); 
+        _mockServer.Reset();
 
         _mockServer
             .Given(Request.Create()

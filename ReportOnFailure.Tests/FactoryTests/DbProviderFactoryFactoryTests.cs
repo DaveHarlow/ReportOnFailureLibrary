@@ -1,9 +1,7 @@
 namespace ReportOnFailure.Tests.FactoryTests;
 
-using System.Data;
-using ReportOnFailure.Factories;
-using ReportOnFailure.Interfaces;
 using ReportOnFailure.Enums;
+using ReportOnFailure.Factories;
 
 public class dbProviderFactoryFactoryTests
 {
@@ -24,13 +22,13 @@ public class dbProviderFactoryFactoryTests
 
         var factoryfactory = new DbProviderFactoryFactory();
         var factory = factoryfactory.GetFactory(DatabaseType.Odbc);
- 
+
         Assert.NotNull(factory);
         Assert.True(factory.GetType() == typeof(System.Data.Odbc.OdbcFactory));
     }
 
     [Fact]
-            public void Create_ReturnsSqliteProviderFactory()
+    public void Create_ReturnsSqliteProviderFactory()
     {
 
         var factoryfactory = new DbProviderFactoryFactory();

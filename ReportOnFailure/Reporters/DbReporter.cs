@@ -1,9 +1,9 @@
 namespace ReportOnFailure.Reporters;
 
-using System;
-using System.Data.Common; 
-using Interfaces;
 using Enums;
+using Interfaces;
+using System;
+using System.Data.Common;
 
 
 public class DbReporter : BaseReporter<DbReporter>, IDbReporter

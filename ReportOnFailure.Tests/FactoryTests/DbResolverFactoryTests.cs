@@ -1,9 +1,8 @@
 namespace ReportOnFailure.Tests.FactoryTests;
 
-using ReportOnFailure.Factories;
-using ReportOnFailure.Interfaces;
-using ReportOnFailure.Resolvers;
 using Moq;
+using ReportOnFailure.Factories;
+using ReportOnFailure.Resolvers;
 
 public class DbResolverFactoryTests
 {

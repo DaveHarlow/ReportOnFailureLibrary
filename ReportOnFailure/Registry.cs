@@ -1,6 +1,6 @@
-﻿using ReportOnFailure.Interfaces;
-using ReportOnFailure.Enums;
+﻿using ReportOnFailure.Enums;
 using ReportOnFailure.Factories;
+using ReportOnFailure.Interfaces;
 using ReportOnFailure.Resolvers;
 
 namespace ReportOnFailure;
@@ -18,11 +18,11 @@ public class Registry : IRegistry
     {
         _writerFactory = writerFactory ?? new WriterFactory();
         _dbResolver = dbResolver ?? new DbResolver(new ResultFormatterFactory(), new DbProviderFactoryFactory());
-        
+
         Reporters = new List<IReporter>();
-        DestinationType = DestinationType.FileSystem; 
-        DestinationLocation = string.Empty; 
-        CompressResults = false; 
+        DestinationType = DestinationType.FileSystem;
+        DestinationLocation = string.Empty;
+        CompressResults = false;
     }
 
     public List<IReporter> Reporters { get; set; }
@@ -82,7 +82,7 @@ public class Registry : IRegistry
         ValidateForExecution();
 
         var writer = _writerFactory.CreateWriter(DestinationType, DestinationLocation, CompressResults);
-        
+
         if (ExecutionMode == ExecutionMode.Asynchronous)
         {
             await ExecuteAsyncMode(writer, cancellationToken);
@@ -105,7 +105,7 @@ public class Registry : IRegistry
     {
         if (string.IsNullOrEmpty(DestinationLocation))
             throw new InvalidOperationException("Destination location must be set before execution.");
-        
+
         if (Reporters.Count == 0)
             throw new InvalidOperationException("At least one reporter must be registered before execution.");
     }
@@ -145,10 +145,10 @@ public class Registry : IRegistry
     private async Task<string> ResolveReporterAsync(IReporter reporter, CancellationToken cancellationToken)
     {
         var effectiveExecutionMode = reporter.ExecutionModeOverride ?? ExecutionMode;
-        
+
         return reporter switch
         {
-            IDbReporter dbReporter => effectiveExecutionMode == ExecutionMode.Asynchronous 
+            IDbReporter dbReporter => effectiveExecutionMode == ExecutionMode.Asynchronous
                 ? await _dbResolver.ResolveAsync(dbReporter, cancellationToken)
                 : _dbResolver.ResolveSync(dbReporter),
             _ => throw new NotSupportedException($"Reporter type {reporter.GetType().Name} is not supported.")
@@ -160,19 +160,19 @@ public class Registry : IRegistry
         return reporter switch
         {
             IDbReporter dbReporter => _dbResolver.ResolveSync(dbReporter),
-            
+
             _ => throw new NotSupportedException($"Reporter type {reporter.GetType().Name} is not supported.")
         };
     }
 
     private static string GenerateFileName(IReporter reporter)
     {
-            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            var extension = GetFileExtension(reporter.ResultsFormat);
-            var guid = Guid.NewGuid().ToString("N")[..8]; 
+        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        var extension = GetFileExtension(reporter.ResultsFormat);
+        var guid = Guid.NewGuid().ToString("N")[..8];
 
 
-            return $"{reporter.FileNamePrefix}_{timestamp}_{guid}.{extension}";
+        return $"{reporter.FileNamePrefix}_{timestamp}_{guid}.{extension}";
     }
 
     private static string GetFileExtension(ResultsFormat format)

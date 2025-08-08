@@ -1,7 +1,7 @@
 namespace ReportOnFailure.Factories;
 
-using System.Data.Common;
 using ReportOnFailure.Enums;
+using System.Data.Common;
 
 public interface IDbProviderFactoryFactory
 {

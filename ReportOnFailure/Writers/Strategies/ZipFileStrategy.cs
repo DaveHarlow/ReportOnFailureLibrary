@@ -1,11 +1,11 @@
 ﻿namespace ReportOnFailure.Writers.Strategies;
 
+using Interfaces;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Interfaces;
 
 public class ZipFileStrategy : ICompressionStrategy
 {

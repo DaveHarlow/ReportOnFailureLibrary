@@ -1,9 +1,9 @@
 namespace ReportOnFailure.Tests;
 
-using Reporters;
 using Enums;
-using System.Data.Common;
 using Moq;
+using Reporters;
+using System.Data.Common;
 
 public class DbReporterTests
 {
@@ -52,7 +52,7 @@ public class DbReporterTests
     {
 
         var reporter = new DbReporter();
-        var parameter = new Mock<DbParameter>().Object; 
+        var parameter = new Mock<DbParameter>().Object;
 
 
         reporter.AddParameter(parameter);
@@ -68,7 +68,7 @@ public class DbReporterTests
         var reporter = new DbReporter();
         var parameters = new List<DbParameter>
         {
-            new Mock<DbParameter>().Object, 
+            new Mock<DbParameter>().Object,
             new Mock<DbParameter>().Object
         };
 

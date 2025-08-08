@@ -1,11 +1,11 @@
 namespace ReportOnFailure.Factories;
 
-using System;
-using System.Data.Common;
 using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
-using System.Data.Odbc;
 using ReportOnFailure.Enums;
+using System;
+using System.Data.Common;
+using System.Data.Odbc;
 
 
 public class DbProviderFactoryFactory : IDbProviderFactoryFactory

@@ -11,7 +11,7 @@ public interface IRegistry
     ExecutionMode ExecutionMode { get; set; }
     DestinationType DestinationType { get; set; }
 
-    string DestinationLocation { get; set; } 
+    string DestinationLocation { get; set; }
 
 
     bool CompressResults { get; set; }

@@ -2,15 +2,15 @@
 
 namespace ReportOnFailure.Resolvers;
 
+using Factories;
+using Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
-using Interfaces;
-using Factories;
 
 public class ApiResolver : IApiResolver
 {
@@ -140,7 +140,7 @@ public class ApiResolver : IApiResolver
             }
         };
 
-        
+
         foreach (var header in response.Headers)
         {
             result[0][$"Header_{header.Key}"] = string.Join(", ", header.Value);

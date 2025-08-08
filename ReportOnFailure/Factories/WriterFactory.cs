@@ -1,8 +1,8 @@
 ﻿namespace ReportOnFailure.Factories;
 
-using System;
 using Enums;
 using Interfaces;
+using System;
 using Writers;
 
 public class WriterFactory : IWriterFactory

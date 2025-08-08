@@ -1,7 +1,7 @@
 namespace ReportOnFailure.Reporters;
 
-using ReportOnFailure.Interfaces;
 using ReportOnFailure.Enums;
+using ReportOnFailure.Interfaces;
 
 public abstract class BaseReporter<T> : IReporter where T : BaseReporter<T>
 {
@@ -10,7 +10,7 @@ public abstract class BaseReporter<T> : IReporter where T : BaseReporter<T>
     public ExecutionMode? ExecutionModeOverride { get; set; }
 
     public string FileNamePrefix { get; set; }
-    
+
 
     public T WithResultsFormat(ResultsFormat format)
     {
@@ -29,5 +29,5 @@ public abstract class BaseReporter<T> : IReporter where T : BaseReporter<T>
         FileNamePrefix = fileName;
         return (T)this;
     }
-    
+
 }
