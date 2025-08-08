@@ -15,9 +15,7 @@ ReportOnFailure helps developers gather debugging information automatically when
 
 ## Installation
 
-```sh
-dotnet add package ReportOnFailure
-```
+Currently manual, adding to Nuget soon
 
 ## Quick Start
 
