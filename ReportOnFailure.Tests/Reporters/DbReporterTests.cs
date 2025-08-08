@@ -52,7 +52,7 @@ public class DbReporterTests
     {
 
         var reporter = new DbReporter();
-        var parameter = new Mock<DbParameter>().Object; // Create a mock or real DbParameter
+        var parameter = new Mock<DbParameter>().Object; 
 
 
         reporter.AddParameter(parameter);
@@ -68,7 +68,7 @@ public class DbReporterTests
         var reporter = new DbReporter();
         var parameters = new List<DbParameter>
         {
-            new Mock<DbParameter>().Object, // Create mock or real DbParameters
+            new Mock<DbParameter>().Object, 
             new Mock<DbParameter>().Object
         };
 
@@ -97,6 +97,16 @@ public class DbReporterTests
 
 
         Assert.Equal(ResultsFormat.Json, reporter.ResultsFormat);
+    }
+
+    [Fact]
+    public void TestWithFileNamePrefix()
+    {
+
+        var reporter = new DbReporter().WithFileNamePrefix("TestFileNamePrefix");
+
+
+        Assert.Equal("TestFileNamePrefix", reporter.FileNamePrefix);
     }
 }
 

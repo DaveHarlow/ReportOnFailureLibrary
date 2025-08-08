@@ -179,9 +179,9 @@ public class WriterTests : IDisposable
 
         var zipPath = Path.Combine(_testDirectory, "test.zip");
         Assert.True(File.Exists(zipPath));
-        Assert.False(File.Exists(Path.Combine(_testDirectory, fileName))); // Original file shouldn't exist
+        Assert.False(File.Exists(Path.Combine(_testDirectory, fileName)));
 
-        // Verify zip contents
+        
         using var archive = ZipFile.OpenRead(zipPath);
         var entry = Assert.Single(archive.Entries);
         Assert.Equal(fileName, entry.Name);
@@ -204,7 +204,7 @@ public class WriterTests : IDisposable
         var zipPath = Path.Combine(_testDirectory, "test_async.zip");
         Assert.True(File.Exists(zipPath));
         
-        // Verify zip contents
+        
         using var archive = ZipFile.OpenRead(zipPath);
         var entry = Assert.Single(archive.Entries);
         Assert.Equal(fileName, entry.Name);
@@ -324,7 +324,7 @@ public class WriterTests : IDisposable
         var zipPath = Path.Combine(_testDirectory, "zip_strategy_test.zip");
         Assert.True(File.Exists(zipPath));
 
-        // Verify zip contents
+        
         using var archive = ZipFile.OpenRead(zipPath);
         var entry = Assert.Single(archive.Entries);
         Assert.Equal(fileName, entry.Name);
@@ -347,7 +347,7 @@ public class WriterTests : IDisposable
         var zipPath = Path.Combine(_testDirectory, "zip_strategy_test_async.zip");
         Assert.True(File.Exists(zipPath));
 
-        // Verify zip contents
+        
         using var archive = ZipFile.OpenRead(zipPath);
         var entry = Assert.Single(archive.Entries);
         Assert.Equal(fileName, entry.Name);
@@ -383,7 +383,7 @@ public class WriterTests : IDisposable
         var zipPath = Path.Combine(_testDirectory, "special_chars.zip");
         Assert.True(File.Exists(zipPath));
 
-        // Verify content is preserved correctly
+        
         using var archive = ZipFile.OpenRead(zipPath);
         var entry = Assert.Single(archive.Entries);
         using var stream = entry.Open();
@@ -454,7 +454,7 @@ public class WriterTests : IDisposable
     [Fact]
     public async Task FileSystemWriter_WriteMultipleFiles_WithMixedCompression()
     {
-        // Test writing multiple files with both compression strategies
+        
         var uncompressedWriter = new FileSystemWriter(_testDirectory, compressResults: false);
         var compressedWriter = new FileSystemWriter(_testDirectory, compressResults: true);
 
@@ -463,16 +463,16 @@ public class WriterTests : IDisposable
         const string fileName1 = "uncompressed.txt";
         const string fileName2 = "compressed.txt";
 
-        // Write both files
+        
         await uncompressedWriter.WriteAsync(content1, fileName1);
         await compressedWriter.WriteAsync(content2, fileName2);
 
-        // Verify uncompressed file
+        
         var uncompressedPath = Path.Combine(_testDirectory, fileName1);
         Assert.True(File.Exists(uncompressedPath));
         Assert.Equal(content1, await File.ReadAllTextAsync(uncompressedPath));
 
-        // Verify compressed file
+        
         var compressedPath = Path.Combine(_testDirectory, "compressed.zip");
         Assert.True(File.Exists(compressedPath));
         
@@ -494,10 +494,10 @@ public class WriterTests : IDisposable
         const string originalContent = "Original content";
         const string newContent = "New content";
 
-        // Write original file
+        
         writer.Write(originalContent, fileName);
         
-        // Write new content to same file
+        
         writer.Write(newContent, fileName);
 
         var filePath = Path.Combine(_testDirectory, fileName);
@@ -510,7 +510,6 @@ public class WriterTests : IDisposable
     {
         var writer = new FileSystemWriter(_testDirectory, compressResults: true);
         
-        // Create large content (1MB)
         var largeContent = new string('A', 1024 * 1024);
         const string fileName = "large_file.txt";
 
@@ -519,7 +518,7 @@ public class WriterTests : IDisposable
         var zipPath = Path.Combine(_testDirectory, "large_file.zip");
         Assert.True(File.Exists(zipPath));
 
-        // Verify content integrity
+        
         using var archive = ZipFile.OpenRead(zipPath);
         var entry = Assert.Single(archive.Entries);
         using var stream = entry.Open();

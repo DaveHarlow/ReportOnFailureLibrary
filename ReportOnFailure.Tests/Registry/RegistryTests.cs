@@ -196,7 +196,7 @@ public class RegistryTests
     [Fact]
     public void Execute_CallsWriterFactory_WithCorrectParameters()
     {
-        // Arrange
+        
         var mockWriterFactory = new Mock<IWriterFactory>();
         var mockWriter = new Mock<IWriter>();
         var mockDbResolver = new Mock<IDbResolver>();
@@ -219,10 +219,10 @@ public class RegistryTests
 
         registry.RegisterReporter(mockDbReporter.Object);
 
-        // Act
+        
         registry.Execute();
 
-        // Assert
+        
         mockWriterFactory.Verify(f => f.CreateWriter(
             DestinationType.FileSystem,
             "/test/path",
@@ -232,7 +232,7 @@ public class RegistryTests
     [Fact]
     public async Task ExecuteAsync_CallsWriterFactory_WithCorrectParameters()
     {
-        // Arrange
+        
         var mockWriterFactory = new Mock<IWriterFactory>();
         var mockWriter = new Mock<IWriter>();
         var mockDbResolver = new Mock<IDbResolver>();
@@ -256,10 +256,10 @@ public class RegistryTests
 
         registry.RegisterReporter(mockDbReporter.Object);
 
-        // Act
+        
         await registry.ExecuteAsync();
 
-        // Assert
+        
         mockWriterFactory.Verify(f => f.CreateWriter(
             DestinationType.AmazonS3,
             "s3://bucket/path",
@@ -269,7 +269,7 @@ public class RegistryTests
     [Fact]
     public void Execute_CallsResolverSync_ForDbReporter()
     {
-        // Arrange
+        
         var mockWriterFactory = new Mock<IWriterFactory>();
         var mockWriter = new Mock<IWriter>();
         var mockDbResolver = new Mock<IDbResolver>();
@@ -290,17 +290,17 @@ public class RegistryTests
 
         registry.RegisterReporter(mockDbReporter.Object);
 
-        // Act
+        
         registry.Execute();
 
-        // Assert
+        
         mockDbResolver.Verify(r => r.ResolveSync(mockDbReporter.Object), Times.Once);
     }
 
     [Fact]
     public async Task ExecuteAsync_CallsResolverAsync_WhenExecutionModeIsAsynchronous()
     {
-        // Arrange
+        
         var mockWriterFactory = new Mock<IWriterFactory>();
         var mockWriter = new Mock<IWriter>();
         var mockDbResolver = new Mock<IDbResolver>();
@@ -323,17 +323,17 @@ public class RegistryTests
 
         registry.RegisterReporter(mockDbReporter.Object);
 
-        // Act
+        
         await registry.ExecuteAsync();
 
-        // Assert
+        
         mockDbResolver.Verify(r => r.ResolveAsync(mockDbReporter.Object, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task ExecuteAsync_RespectsReporterExecutionModeOverride()
     {
-        // Arrange
+        
         var mockWriterFactory = new Mock<IWriterFactory>();
         var mockWriter = new Mock<IWriter>();
         var mockDbResolver = new Mock<IDbResolver>();
@@ -352,14 +352,14 @@ public class RegistryTests
 
         var registry = new Registry(mockWriterFactory.Object, mockDbResolver.Object)
             .WithDestinationLocation("/test/path")
-            .WithExecutionMode(ExecutionMode.Asynchronous); // Registry is async, but reporter overrides to sync
+            .WithExecutionMode(ExecutionMode.Asynchronous); 
 
         registry.RegisterReporter(mockDbReporter.Object);
 
-        // Act
+        
         await registry.ExecuteAsync();
 
-        // Assert
+        
         mockDbResolver.Verify(r => r.ResolveSync(mockDbReporter.Object), Times.Once);
         mockDbResolver.Verify(r => r.ResolveAsync(It.IsAny<IDbReporter>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -367,7 +367,7 @@ public class RegistryTests
     [Fact]
     public void Execute_CallsWriterWrite_WithCorrectFileName()
     {
-        // Arrange
+        
         var mockWriterFactory = new Mock<IWriterFactory>();
         var mockWriter = new Mock<IWriter>();
         var mockDbResolver = new Mock<IDbResolver>();
@@ -390,10 +390,10 @@ public class RegistryTests
 
         registry.RegisterReporter(mockDbReporter.Object);
 
-        // Act
+        
         registry.Execute();
 
-        // Assert
+        
         mockWriter.Verify(w => w.Write(
             "test content",
             It.Is<string>(fileName => 
@@ -405,7 +405,7 @@ public class RegistryTests
     [Fact]
     public void Execute_ThrowsNotSupportedException_ForUnsupportedReporterType()
     {
-        // Arrange
+        
         var mockWriterFactory = new Mock<IWriterFactory>();
         var mockWriter = new Mock<IWriter>();
         var mockDbResolver = new Mock<IDbResolver>();
@@ -422,7 +422,7 @@ public class RegistryTests
 
         registry.RegisterReporter(mockUnsupportedReporter.Object);
 
-        // Act & Assert
+        
         var exception = Assert.Throws<NotSupportedException>(() => registry.Execute());
         Assert.Contains("Reporter type IReporterProxy is not supported.", exception.Message);
     }
@@ -430,7 +430,7 @@ public class RegistryTests
     [Fact]
     public async Task ExecuteAsync_ProcessesMultipleReporters()
     {
-        // Arrange
+        
         var mockWriterFactory = new Mock<IWriterFactory>();
         var mockWriter = new Mock<IWriter>();
         var mockDbResolver = new Mock<IDbResolver>();
@@ -462,10 +462,10 @@ public class RegistryTests
         registry.RegisterReporter(mockDbReporter1.Object);
         registry.RegisterReporter(mockDbReporter2.Object);
 
-        // Act
+        
         await registry.ExecuteAsync();
 
-        // Assert
+        
         mockWriter.Verify(w => w.WriteAsync("content1", It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         mockWriter.Verify(w => w.WriteAsync("content2", It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -478,7 +478,6 @@ public class RegistryTests
     [InlineData(ResultsFormat.Text, "txt")]
     public void GenerateFileName_CreatesCorrectExtension_ForResultsFormat(ResultsFormat format, string expectedExtension)
     {
-        // We can't directly test the private method, but we can test it through Execute
         var mockWriterFactory = new Mock<IWriterFactory>();
         var mockWriter = new Mock<IWriter>();
         var mockDbResolver = new Mock<IDbResolver>();
@@ -499,10 +498,10 @@ public class RegistryTests
 
         registry.RegisterReporter(mockDbReporter.Object);
 
-        // Act
+        
         registry.Execute();
 
-        // Assert
+        
         mockWriter.Verify(w => w.Write(
             It.IsAny<string>(),
             It.Is<string>(fileName => fileName.EndsWith($".{expectedExtension}"))), 
@@ -512,7 +511,7 @@ public class RegistryTests
     [Fact]
     public void Constructor_UsesDefaultImplementations_WhenDependenciesNotProvided()
     {
-        // This test ensures the default constructor works correctly
+        
         var registry = new Registry();
 
         Assert.NotNull(registry.Reporters);

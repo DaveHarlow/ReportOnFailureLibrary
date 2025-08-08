@@ -194,7 +194,7 @@ public class DbResolverTests : IDisposable
     {
 
         var resolver = new DbResolver(_formatterFactory, _dbProviderFactoryFactory);
-        // Arrange
+        
         var reporter = new DbReporter()
             .WithDatabaseType(DatabaseType.Sqlite)
             .WithConnectionString(SharedConnectionString)
@@ -203,10 +203,10 @@ public class DbResolverTests : IDisposable
             .AddParameter(new SqliteParameter("@Name", "A%"))
             .WithResultsFormat(ResultsFormat.Json);
 
-        // Act
+        
         var result = resolver.ResolveSync(reporter);
 
-        // Assert
+        
         Assert.NotNull(result);
         using var jsonDoc = JsonDocument.Parse(result);
         var root = jsonDoc.RootElement;

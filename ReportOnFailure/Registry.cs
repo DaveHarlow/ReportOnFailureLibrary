@@ -20,9 +20,9 @@ public class Registry : IRegistry
         _dbResolver = dbResolver ?? new DbResolver(new ResultFormatterFactory(), new DbProviderFactoryFactory());
         
         Reporters = new List<IReporter>();
-        DestinationType = DestinationType.FileSystem; // Default write type
-        DestinationLocation = string.Empty; // Default location
-        CompressResults = false; // Default compression setting
+        DestinationType = DestinationType.FileSystem; 
+        DestinationLocation = string.Empty; 
+        CompressResults = false; 
     }
 
     public List<IReporter> Reporters { get; set; }
@@ -169,7 +169,7 @@ public class Registry : IRegistry
     {
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var extension = GetFileExtension(reporter.ResultsFormat);
-            var guid = Guid.NewGuid().ToString("N")[..8]; // Short GUID for uniqueness
+            var guid = Guid.NewGuid().ToString("N")[..8]; 
 
 
             return $"{reporter.FileNamePrefix}_{timestamp}_{guid}.{extension}";
