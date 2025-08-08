@@ -9,15 +9,17 @@ public class Registry : IRegistry
 {
     private readonly IWriterFactory _writerFactory;
     private readonly IDbResolver _dbResolver;
+    private readonly IApiResolver _apiResolver;
 
     public Registry() : this(null, null)
     {
     }
 
-    public Registry(IWriterFactory? writerFactory = null, IDbResolver? dbResolver = null)
+    public Registry(IWriterFactory? writerFactory = null, IDbResolver? dbResolver = null, IApiResolver apiResolver = null)
     {
         _writerFactory = writerFactory ?? new WriterFactory();
         _dbResolver = dbResolver ?? new DbResolver(new ResultFormatterFactory(), new DbProviderFactoryFactory());
+        _apiResolver = apiResolver ?? new ApiResolver(new ResultFormatterFactory());
 
         Reporters = new List<IReporter>();
         DestinationType = DestinationType.FileSystem;
@@ -151,6 +153,9 @@ public class Registry : IRegistry
             IDbReporter dbReporter => effectiveExecutionMode == ExecutionMode.Asynchronous
                 ? await _dbResolver.ResolveAsync(dbReporter, cancellationToken)
                 : _dbResolver.ResolveSync(dbReporter),
+            IApiReporter apiReporter => effectiveExecutionMode == ExecutionMode.Asynchronous
+            ? await _apiResolver.ResolveAsync(apiReporter, cancellationToken)
+            : _apiResolver.ResolveSync(apiReporter),
             _ => throw new NotSupportedException($"Reporter type {reporter.GetType().Name} is not supported.")
         };
     }
