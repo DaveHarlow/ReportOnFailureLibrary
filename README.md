@@ -1,5 +1,4 @@
-# FailureReporter
-# ReportOnFailure
+# Report On Failure Library (ROFL)
 
 A .NET library for collecting and outputting contextual information when tests or operations fail. Designed to help with debugging by automatically gathering relevant data from databases, APIs, and other sources when something goes wrong.
 
