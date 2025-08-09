@@ -19,7 +19,7 @@ public class RestApiReporter : BaseApiReporter<RestApiReporter>, IRestApiReporte
 
     public RestApiReporter WithQueryParameter(string name, object value)
     {
-        ArgumentException.ThrowIfNullOrEmpty(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name); // Remove ThrowIfNullOrEmpty - this covers it
         ArgumentNullException.ThrowIfNull(value);
         QueryParameters[name] = value;
         return this;
@@ -37,7 +37,7 @@ public class RestApiReporter : BaseApiReporter<RestApiReporter>, IRestApiReporte
 
     public RestApiReporter WithFormData(string name, string value)
     {
-        ArgumentException.ThrowIfNullOrEmpty(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name); // Remove ThrowIfNullOrEmpty - this covers it
         ArgumentNullException.ThrowIfNull(value);
         FormData[name] = value;
         RequestContentType = ContentType.ApplicationFormUrlEncoded;
@@ -73,7 +73,11 @@ public class RestApiReporter : BaseApiReporter<RestApiReporter>, IRestApiReporte
 
         var queryString = string.Join("&",
             QueryParameters.Select(kvp =>
-                $"{HttpUtility.UrlEncode(kvp.Key)}={HttpUtility.UrlEncode(kvp.Value.ToString())}"));
+            {
+                var key = HttpUtility.UrlEncode(kvp.Key);
+                var value = HttpUtility.UrlEncode(kvp.Value?.ToString() ?? string.Empty);
+                return $"{key}={value}";
+            }));
 
         return $"{fullUrl}?{queryString}";
     }

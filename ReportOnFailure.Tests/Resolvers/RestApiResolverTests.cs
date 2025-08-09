@@ -13,14 +13,14 @@ using WireMock.Settings;
 
 namespace ReportOnFailure.Tests.Resolvers;
 
-public class ApiResolverTests : IDisposable
+public class RestApiResolverTests : IDisposable
 {
     private readonly WireMockServer _mockServer;
     private readonly HttpClient _httpClient;
     private readonly RestApiResolver _apiResolver;
     private readonly Mock<IResultFormatterFactory> _mockFormatterFactory;
 
-    public ApiResolverTests()
+    public RestApiResolverTests()
     {
         _mockServer = WireMockServer.Start(new WireMockServerSettings
         {
