@@ -4,7 +4,7 @@ A .NET library for collecting and outputting contextual information when tests o
 
 ## Purpose
 
-ReportOnFailure helps developers and testers gather debugging information automatically when failures occur on E2E and integration tests. Instead of manually collecting logs, database states, or API responses after a failure, this library allows you to pre-configure data collection that executes only when needed.
+ROFL helps developers and testers gather debugging information automatically when failures occur on E2E and integration tests. Instead of manually collecting logs, database states, or API responses after a failure, this library allows you to pre-configure data collection that executes only when needed.
 
 **Common use cases:**
 - Capturing database state when integration tests fail
