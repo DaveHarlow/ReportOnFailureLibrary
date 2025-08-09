@@ -1,15 +1,15 @@
-﻿using System.IO.Compression;
-using Microsoft.Data.Sqlite;
-using ReportOnFailure;
+﻿using Microsoft.Data.Sqlite;
 using ReportOnFailure.Enums;
 using ReportOnFailure.Reporters;
+using System.IO.Compression;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 using WireMock.Settings;
-using Xunit;
 
 namespace ReportOnFailure.Tests.E2E;
+
+using Registry = ReportOnFailure.Registries.Registry;
 
 public class EndToEndTest : IDisposable
 {
@@ -20,11 +20,11 @@ public class EndToEndTest : IDisposable
 
     public EndToEndTest()
     {
-        
+
         _testOutputDirectory = Path.Combine(Path.GetTempPath(), "ReportOnFailure_E2E", Guid.NewGuid().ToString());
         Directory.CreateDirectory(_testOutputDirectory);
 
-        
+
         _mockApiServer = WireMockServer.Start(new WireMockServerSettings
         {
             Port = 0,
@@ -36,7 +36,7 @@ public class EndToEndTest : IDisposable
         var cacheId = Guid.NewGuid().ToString("N")[..8];
         _connectionString = $"DataSource=TestDb_{cacheId};Mode=Memory;Cache=Shared";
 
-        
+
         _inMemoryDatabase = new SqliteConnection(_connectionString);
         _inMemoryDatabase.Open();
 
@@ -46,13 +46,13 @@ public class EndToEndTest : IDisposable
     [Fact]
     public async Task EndToEnd_FailureScenario_CreatesCompressedReportsWithCorrectContent()
     {
-        
-        var registry = new ReportOnFailure.Registry()
+
+        var registry = new Registry()
             .WithDestinationLocation(_testOutputDirectory)
             .WithCompression()
             .WithExecutionMode(ExecutionMode.Asynchronous);
 
-        
+
         var dbReporter = new DbReporter()
             .WithDatabaseType(DatabaseType.Sqlite)
             .WithConnectionString(_connectionString)
@@ -60,7 +60,7 @@ public class EndToEndTest : IDisposable
             .WithResultsFormat(ResultsFormat.Json)
             .WithFileNamePrefix("ActiveUsers");
 
-        
+
         var apiReporter = new ApiReporter()
             .WithBaseUrl(_mockApiServer.Urls[0])
             .WithEndpoint("/api/system/status")
@@ -70,22 +70,22 @@ public class EndToEndTest : IDisposable
             .WithResultsFormat(ResultsFormat.Json)
             .WithFileNamePrefix("SystemStatus");
 
-        
+
         registry.RegisterReporter(dbReporter);
         registry.RegisterReporter(apiReporter);
 
-        
+
         var testFailed = false;
         try
         {
-            
+
             SimulateFailingOperation();
         }
         catch (InvalidOperationException)
         {
             testFailed = true;
 
-            
+
             await registry.ExecuteAsync();
         }
 
@@ -93,7 +93,7 @@ public class EndToEndTest : IDisposable
 
 
         var createdFiles = Directory.GetFiles(_testOutputDirectory, "*.zip");
-        Assert.Equal(2, createdFiles.Length); 
+        Assert.Equal(2, createdFiles.Length);
 
         var dbReportFile = Array.Find(createdFiles, f => Path.GetFileName(f).StartsWith("ActiveUsers_"));
         var apiReportFile = Array.Find(createdFiles, f => Path.GetFileName(f).StartsWith("SystemStatus_"));
@@ -112,7 +112,7 @@ public class EndToEndTest : IDisposable
     [Fact]
     public async Task EndToEnd_SynchronousExecution_CreatesReports()
     {
-        var registry = new ReportOnFailure.Registry()
+        var registry = new Registry()
             .WithDestinationLocation(_testOutputDirectory)
             .WithCompression()
             .WithExecutionMode(ExecutionMode.Synchronous);
@@ -132,7 +132,7 @@ public class EndToEndTest : IDisposable
         }
         catch (InvalidOperationException)
         {
-            registry.Execute(); 
+            registry.Execute();
         }
 
         var createdFiles = Directory.GetFiles(_testOutputDirectory, "UserCount_*.zip");
@@ -153,7 +153,7 @@ public class EndToEndTest : IDisposable
     [Fact]
     public async Task EndToEnd_WithParameterizedDbQuery_CreatesFilteredReport()
     {
-        var registry = new ReportOnFailure.Registry()
+        var registry = new Registry()
             .WithDestinationLocation(_testOutputDirectory)
             .WithCompression();
 
@@ -199,7 +199,7 @@ public class EndToEndTest : IDisposable
                 .WithHeader("Content-Type", "application/json")
                 .WithBody("{\"status\": \"authenticated\", \"user\": \"test-user\", \"permissions\": [\"read\", \"write\"]}"));
 
-        var registry = new ReportOnFailure.Registry()
+        var registry = new Registry()
             .WithDestinationLocation(_testOutputDirectory)
             .WithCompression();
 
@@ -228,13 +228,13 @@ public class EndToEndTest : IDisposable
         var jsonContent = await ExtractJsonFromZip(createdFiles[0]);
         Assert.Contains("authenticated", jsonContent);
         Assert.Contains("test-user", jsonContent);
-        Assert.Contains("200", jsonContent); 
+        Assert.Contains("200", jsonContent);
     }
 
     [Fact]
     public async Task EndToEnd_MixedExecutionModes_RespectsReporterOverrides()
     {
-        var registry = new ReportOnFailure.Registry()
+        var registry = new Registry()
             .WithDestinationLocation(_testOutputDirectory)
             .WithCompression()
             .WithExecutionMode(ExecutionMode.Asynchronous);
@@ -266,7 +266,7 @@ public class EndToEndTest : IDisposable
             await registry.ExecuteAsync();
         }
 
-        
+
         var createdFiles = Directory.GetFiles(_testOutputDirectory, "*.zip");
         Assert.Equal(2, createdFiles.Length);
 
@@ -287,7 +287,7 @@ public class EndToEndTest : IDisposable
 
     private void SetupMockApiEndpoints()
     {
-        
+
         _mockApiServer
             .Given(Request.Create()
                 .WithPath("/api/system/status")
@@ -298,7 +298,7 @@ public class EndToEndTest : IDisposable
                 .WithHeader("Content-Type", "application/json")
                 .WithBody("{\"status\": \"operational\", \"version\": \"1.2.3\", \"uptime\": \"72:30:15\", \"services\": {\"database\": \"healthy\", \"cache\": \"healthy\"}}"));
 
-        
+
         _mockApiServer
             .Given(Request.Create()
                 .WithPath("/api/system/status")
@@ -336,7 +336,7 @@ public class EndToEndTest : IDisposable
 
     private static void SimulateFailingOperation()
     {
-        
+
         throw new InvalidOperationException("Simulated test failure - this triggers failure report collection");
     }
 
@@ -344,12 +344,12 @@ public class EndToEndTest : IDisposable
     {
         var jsonContent = await ExtractJsonFromZip(zipFilePath);
 
-        
+
         Assert.Contains("Alice Johnson", jsonContent);
         Assert.Contains("Charlie Brown", jsonContent);
-        Assert.DoesNotContain("Bob Smith", jsonContent); 
+        Assert.DoesNotContain("Bob Smith", jsonContent);
 
-        
+
         Assert.Contains("\"Id\":", jsonContent);
         Assert.Contains("\"Name\":", jsonContent);
         Assert.Contains("\"Email\":", jsonContent);
@@ -361,11 +361,11 @@ public class EndToEndTest : IDisposable
     {
         var jsonContent = await ExtractJsonFromZip(zipFilePath);
 
-        
+
         Assert.Contains("\"StatusCode\": 200", jsonContent);
         Assert.Contains("\"IsSuccess\": true", jsonContent);
 
-        
+
         Assert.Contains("operational", jsonContent);
         Assert.Contains("version", jsonContent);
         Assert.Contains("uptime", jsonContent);
@@ -407,7 +407,7 @@ public class EndToEndTest : IDisposable
         _mockApiServer?.Stop();
         _mockApiServer?.Dispose();
 
-        
+
         if (Directory.Exists(_testOutputDirectory))
         {
             Directory.Delete(_testOutputDirectory, recursive: true);

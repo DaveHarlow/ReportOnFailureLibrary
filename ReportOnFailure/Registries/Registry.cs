@@ -1,25 +1,27 @@
 ﻿using ReportOnFailure.Enums;
 using ReportOnFailure.Factories;
-using ReportOnFailure.Interfaces;
+using ReportOnFailure.Interfaces.Registry;
+using ReportOnFailure.Interfaces.Reporters;
+using ReportOnFailure.Interfaces.Resolvers;
+using ReportOnFailure.Interfaces.Writers;
 using ReportOnFailure.Resolvers;
 
-namespace ReportOnFailure;
+namespace ReportOnFailure.Registries;
 
 public class Registry : IRegistry
 {
     private readonly IWriterFactory _writerFactory;
-    private readonly IDbResolver _dbResolver;
-    private readonly IApiResolver _apiResolver;
+    private readonly IResolverRegistry _resolverRegistry;
 
     public Registry() : this(null, null)
     {
     }
 
-    public Registry(IWriterFactory? writerFactory = null, IDbResolver? dbResolver = null, IApiResolver apiResolver = null)
+
+    public Registry(IWriterFactory? writerFactory = null, IResolverRegistry? resolverRegistry = null)
     {
         _writerFactory = writerFactory ?? new WriterFactory();
-        _dbResolver = dbResolver ?? new DbResolver(new ResultFormatterFactory(), new DbProviderFactoryFactory());
-        _apiResolver = apiResolver ?? new ApiResolver(new ResultFormatterFactory());
+        _resolverRegistry = resolverRegistry ?? CreateDefaultResolverRegistry();
 
         Reporters = new List<IReporter>();
         DestinationType = DestinationType.FileSystem;
@@ -28,13 +30,28 @@ public class Registry : IRegistry
     }
 
     public List<IReporter> Reporters { get; set; }
-
     public DestinationType DestinationType { get; set; }
     public bool CompressResults { get; set; }
-
     public string DestinationLocation { get; set; } = string.Empty;
-
     public ExecutionMode ExecutionMode { get; set; } = ExecutionMode.Synchronous;
+
+
+    public Registry RegisterCustomResolver<TReporter, TResolver>(TResolver resolver)
+        where TReporter : class, IReporter
+        where TResolver : class, IReportResolverAsync<TReporter>, IReportResolverSync<TReporter>
+    {
+        _resolverRegistry.RegisterResolver<TReporter, TResolver>(resolver);
+        return this;
+    }
+
+    public Registry RegisterCustomResolver<TReporter>(
+        Func<TReporter, CancellationToken, Task<string>> asyncResolver,
+        Func<TReporter, string> syncResolver)
+        where TReporter : class, IReporter
+    {
+        _resolverRegistry.RegisterResolver(asyncResolver, syncResolver);
+        return this;
+    }
 
     public void RegisterReporter(IReporter reporter)
     {
@@ -98,9 +115,24 @@ public class Registry : IRegistry
     public void Execute()
     {
         ValidateForExecution();
-
         var writer = _writerFactory.CreateWriter(DestinationType, DestinationLocation, CompressResults);
         ExecuteSyncMode(writer);
+    }
+
+    private static IResolverRegistry CreateDefaultResolverRegistry()
+    {
+        var registry = new ResolverRegistry();
+
+
+        var formatterFactory = new ResultFormatterFactory();
+        var dbProviderFactory = new DbProviderFactoryFactory();
+
+        registry.RegisterResolver<IDbReporter, IDbResolver>(
+            new DbResolver(formatterFactory, dbProviderFactory));
+        registry.RegisterResolver<IApiReporter, IApiResolver>(
+            new ApiResolver(formatterFactory));
+
+        return registry;
     }
 
     private void ValidateForExecution()
@@ -148,26 +180,53 @@ public class Registry : IRegistry
     {
         var effectiveExecutionMode = reporter.ExecutionModeOverride ?? ExecutionMode;
 
-        return reporter switch
+
+        if (effectiveExecutionMode == ExecutionMode.Asynchronous)
         {
-            IDbReporter dbReporter => effectiveExecutionMode == ExecutionMode.Asynchronous
-                ? await _dbResolver.ResolveAsync(dbReporter, cancellationToken)
-                : _dbResolver.ResolveSync(dbReporter),
-            IApiReporter apiReporter => effectiveExecutionMode == ExecutionMode.Asynchronous
-            ? await _apiResolver.ResolveAsync(apiReporter, cancellationToken)
-            : _apiResolver.ResolveSync(apiReporter),
-            _ => throw new NotSupportedException($"Reporter type {reporter.GetType().Name} is not supported.")
-        };
+            return await ResolveUsingRegistryAsync(reporter, cancellationToken);
+        }
+        else
+        {
+            return ResolveUsingRegistrySync(reporter);
+        }
     }
 
     private string ResolveReporterSync(IReporter reporter)
     {
-        return reporter switch
-        {
-            IDbReporter dbReporter => _dbResolver.ResolveSync(dbReporter),
+        return ResolveUsingRegistrySync(reporter);
+    }
 
-            _ => throw new NotSupportedException($"Reporter type {reporter.GetType().Name} is not supported.")
-        };
+    private async Task<string> ResolveUsingRegistryAsync(IReporter reporter, CancellationToken cancellationToken)
+    {
+        var reporterType = reporter.GetType();
+
+
+        if (!_resolverRegistry.CanResolve(reporterType))
+        {
+            throw new NotSupportedException($"No resolver registered for reporter type {reporterType.Name}");
+        }
+
+
+        var method = _resolverRegistry.GetType().GetMethod("ResolveAsync");
+        var genericMethod = method.MakeGenericMethod(reporterType);
+        var task = (Task<string>)genericMethod.Invoke(_resolverRegistry, new object[] { reporter, cancellationToken });
+        return await task;
+    }
+
+    private string ResolveUsingRegistrySync(IReporter reporter)
+    {
+        var reporterType = reporter.GetType();
+
+
+        if (!_resolverRegistry.CanResolve(reporterType))
+        {
+            throw new NotSupportedException($"No resolver registered for reporter type {reporterType.Name}");
+        }
+
+
+        var method = _resolverRegistry.GetType().GetMethod("ResolveSync");
+        var genericMethod = method.MakeGenericMethod(reporterType);
+        return (string)genericMethod.Invoke(_resolverRegistry, new object[] { reporter });
     }
 
     private static string GenerateFileName(IReporter reporter)
@@ -175,7 +234,6 @@ public class Registry : IRegistry
         var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
         var extension = GetFileExtension(reporter.ResultsFormat);
         var guid = Guid.NewGuid().ToString("N")[..8];
-
 
         return $"{reporter.FileNamePrefix}_{timestamp}_{guid}.{extension}";
     }

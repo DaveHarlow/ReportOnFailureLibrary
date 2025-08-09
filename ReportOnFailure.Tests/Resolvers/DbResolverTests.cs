@@ -1,3 +1,4 @@
+using ReportOnFailure.Reporters;
 using System.Text;
 
 namespace ReportOnFailure.Tests.Resolvers;
@@ -5,7 +6,6 @@ namespace ReportOnFailure.Tests.Resolvers;
 using Enums;
 using Factories;
 using Microsoft.Data.Sqlite;
-using Reporters;
 using ReportOnFailure.Resolvers;
 using System;
 using System.Text.Json;

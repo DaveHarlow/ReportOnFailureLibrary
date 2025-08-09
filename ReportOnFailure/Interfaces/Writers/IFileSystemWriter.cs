@@ -1,4 +1,4 @@
-﻿namespace ReportOnFailure.Interfaces;
+﻿namespace ReportOnFailure.Interfaces.Writers;
 
 public interface IFileSystemWriter : IWriter
 {

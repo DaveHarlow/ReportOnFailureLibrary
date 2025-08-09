@@ -3,8 +3,8 @@
 namespace ReportOnFailure.Reporters;
 
 using Enums;
-using Interfaces;
 using ReportOnFailure.Authentication;
+using ReportOnFailure.Interfaces.Reporters;
 using System;
 using System.Collections.Generic;
 using System.Linq;

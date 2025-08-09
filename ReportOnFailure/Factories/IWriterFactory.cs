@@ -1,7 +1,7 @@
 ﻿namespace ReportOnFailure.Factories;
 
 using Enums;
-using Interfaces;
+using ReportOnFailure.Interfaces.Writers;
 
 public interface IWriterFactory
 {

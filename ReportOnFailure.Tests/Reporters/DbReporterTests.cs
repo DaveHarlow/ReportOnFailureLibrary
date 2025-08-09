@@ -1,8 +1,9 @@
+using ReportOnFailure.Reporters;
+
 namespace ReportOnFailure.Tests;
 
 using Enums;
 using Moq;
-using Reporters;
 using System.Data.Common;
 
 public class DbReporterTests

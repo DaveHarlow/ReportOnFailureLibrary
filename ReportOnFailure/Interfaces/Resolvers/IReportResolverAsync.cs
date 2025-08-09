@@ -1,5 +1,6 @@
-namespace ReportOnFailure.Interfaces;
+namespace ReportOnFailure.Interfaces.Resolvers;
 
+using ReportOnFailure.Interfaces.Reporters;
 using System.Threading;
 using System.Threading.Tasks;
 

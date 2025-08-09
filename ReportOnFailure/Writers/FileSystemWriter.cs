@@ -1,6 +1,7 @@
 ﻿namespace ReportOnFailure.Writers;
 
 using Interfaces;
+using ReportOnFailure.Interfaces.Writers;
 using Strategies;
 using System;
 using System.Threading;

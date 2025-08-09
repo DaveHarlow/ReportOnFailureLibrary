@@ -1,7 +1,7 @@
 ﻿using ReportOnFailure.Authentication;
 using System.Text;
 
-namespace ReportOnFailure.Interfaces;
+namespace ReportOnFailure.Interfaces.Reporters;
 
 using Enums;
 using System.Collections.Generic;

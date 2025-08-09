@@ -3,7 +3,8 @@
 namespace ReportOnFailure.Resolvers;
 
 using Factories;
-using Interfaces;
+using ReportOnFailure.Interfaces.Reporters;
+using ReportOnFailure.Interfaces.Resolvers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

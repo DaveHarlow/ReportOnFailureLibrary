@@ -1,4 +1,4 @@
-using ReportOnFailure.Interfaces;
+using ReportOnFailure.Interfaces.Resolvers;
 using ReportOnFailure.Resolvers;
 
 namespace ReportOnFailure.Factories;
