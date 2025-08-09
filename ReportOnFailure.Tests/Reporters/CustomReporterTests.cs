@@ -135,16 +135,16 @@ public class CustomReporterTests
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void CustomProcessReporter_WithInvalidProcessName_ThrowsArgumentException(string processName)
+    [InlineData(data: null)]
+    [InlineData(data: "")]
+    [InlineData(data: "   ")]
+    public void CustomProcessReporter_WithInvalidProcessName_ThrowsArgumentException(string? processName)
     {
 
         var reporter = new CustomProcessReporter();
 
 
-        Assert.Throws<ArgumentException>(() => reporter.WithProcessName(processName));
+        Assert.Throws<ArgumentException>(testCode: () => reporter.WithProcessName(processName: processName));
     }
 
     #endregion

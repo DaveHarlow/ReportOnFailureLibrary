@@ -17,7 +17,7 @@ public class ApiResolverTests : IDisposable
 {
     private readonly WireMockServer _mockServer;
     private readonly HttpClient _httpClient;
-    private readonly ApiResolver _apiResolver;
+    private readonly RestApiResolver _apiResolver;
     private readonly Mock<IResultFormatterFactory> _mockFormatterFactory;
 
     public ApiResolverTests()
@@ -38,7 +38,7 @@ public class ApiResolverTests : IDisposable
         _mockFormatterFactory.Setup(f => f.CreateFormatter(It.IsAny<ResultsFormat>()))
             .Returns(mockFormatter.Object);
 
-        _apiResolver = new ApiResolver(_mockFormatterFactory.Object, _httpClient);
+        _apiResolver = new RestApiResolver(_mockFormatterFactory.Object, _httpClient);
     }
 
     public void Dispose()
@@ -57,7 +57,7 @@ public class ApiResolverTests : IDisposable
 
         SetupSuccessfulResponse("/api/test", "GET", "Test GET response");
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/test")
             .WithMethod(ApiHttpMethod.GET)
@@ -78,7 +78,7 @@ public class ApiResolverTests : IDisposable
         const string requestBody = "{\"name\": \"test\", \"value\": \"data\"}";
         SetupSuccessfulResponse("/api/create", "POST", "Created successfully", requestBody);
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/create")
             .WithMethod(ApiHttpMethod.POST)
@@ -100,7 +100,7 @@ public class ApiResolverTests : IDisposable
         const string requestBody = "{\"id\": 1, \"name\": \"updated\"}";
         SetupSuccessfulResponse("/api/update/1", "PUT", "Updated successfully", requestBody);
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/update/1")
             .WithMethod(ApiHttpMethod.PUT)
@@ -122,7 +122,7 @@ public class ApiResolverTests : IDisposable
         const string requestBody = "{\"name\": \"patched\"}";
         SetupSuccessfulResponse("/api/patch/1", "PATCH", "Patched successfully", requestBody);
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/patch/1")
             .WithMethod(ApiHttpMethod.PATCH)
@@ -143,7 +143,7 @@ public class ApiResolverTests : IDisposable
 
         SetupSuccessfulResponse("/api/delete/1", "DELETE", "Deleted successfully");
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/delete/1")
             .WithMethod(ApiHttpMethod.DELETE)
@@ -168,7 +168,7 @@ public class ApiResolverTests : IDisposable
                 .WithHeader("Content-Length", "100")
                 .WithHeader("Content-Type", "application/json"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/head")
             .WithMethod(ApiHttpMethod.HEAD)
@@ -193,7 +193,7 @@ public class ApiResolverTests : IDisposable
                 .WithHeader("Allow", "GET, POST, PUT, DELETE")
                 .WithBody(""));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/options")
             .WithMethod(ApiHttpMethod.OPTIONS)
@@ -227,7 +227,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(200)
                 .WithBody("Protected resource accessed"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/protected")
             .WithMethod(ApiHttpMethod.GET)
@@ -259,7 +259,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(200)
                 .WithBody("Basic auth successful"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/basic-auth")
             .WithMethod(ApiHttpMethod.GET)
@@ -289,7 +289,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(200)
                 .WithBody("API key auth successful"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/key-protected")
             .WithMethod(ApiHttpMethod.GET)
@@ -319,7 +319,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(200)
                 .WithBody("Query API key auth successful"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/query-auth")
             .WithMethod(ApiHttpMethod.GET)
@@ -352,7 +352,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(200)
                 .WithBody("JWT auth successful"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/jwt-protected")
             .WithMethod(ApiHttpMethod.GET)
@@ -398,7 +398,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(200)
                 .WithBody("Access granted after refresh"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/jwt-retry")
             .WithMethod(ApiHttpMethod.GET)
@@ -434,7 +434,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(201)
                 .WithBody("JSON received"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/json")
             .WithEncoding(Encoding.UTF8)
@@ -466,7 +466,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(201)
                 .WithBody("XML received"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/xml")
             .WithMethod(ApiHttpMethod.POST)
@@ -502,7 +502,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(200)
                 .WithBody("Form data received"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/form")
             .WithMethod(ApiHttpMethod.POST)
@@ -533,7 +533,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(200)
                 .WithBody("Text received"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/text")
             .WithMethod(ApiHttpMethod.POST)
@@ -568,7 +568,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(200)
                 .WithBody("Search results"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/search")
             .WithMethod(ApiHttpMethod.GET)
@@ -602,7 +602,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(200)
                 .WithBody("Headers received"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/headers")
             .WithMethod(ApiHttpMethod.GET)
@@ -635,7 +635,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(404)
                 .WithBody("Not Found"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/notfound")
             .WithMethod(ApiHttpMethod.GET)
@@ -660,7 +660,7 @@ public class ApiResolverTests : IDisposable
                 .WithStatusCode(500)
                 .WithBody("Internal Server Error"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/error")
             .WithMethod(ApiHttpMethod.GET)
@@ -686,7 +686,7 @@ public class ApiResolverTests : IDisposable
                 .WithDelay(TimeSpan.FromSeconds(10))
                 .WithBody("Slow response"));
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/slow")
             .WithMethod(ApiHttpMethod.GET)
@@ -704,7 +704,7 @@ public class ApiResolverTests : IDisposable
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/test")
             .WithMethod(ApiHttpMethod.GET)
@@ -725,7 +725,7 @@ public class ApiResolverTests : IDisposable
 
         SetupSuccessfulResponse("/api/sync", "GET", "Sync response");
 
-        var reporter = new ApiReporter()
+        var reporter = new RestApiReporter()
             .WithBaseUrl(_mockServer.Urls[0])
             .WithEndpoint("/api/sync")
             .WithMethod(ApiHttpMethod.GET)

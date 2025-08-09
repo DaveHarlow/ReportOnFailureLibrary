@@ -186,8 +186,7 @@ public class RegistryTests
     {
         var registry = new Registry();
 
-        var result = registry.RegisterCustomResolver<ITestReporter>(
-            async (reporter, ct) => "async result",
+        var result = registry.RegisterCustomResolver<ITestReporter>((reporter, ct) => Task.FromResult("async result"),
             reporter => "sync result"
         );
 
@@ -221,8 +220,7 @@ public class RegistryTests
         var registry = new Registry();
 
         Assert.Throws<ArgumentNullException>(() =>
-            registry.RegisterCustomResolver<ITestReporter>(
-                async (reporter, ct) => "async result",
+            registry.RegisterCustomResolver<ITestReporter>((reporter, ct) => Task.FromResult("async result"),
                 null!
             ));
     }
@@ -278,7 +276,7 @@ public class RegistryTests
     #region Custom Resolver Execution Tests
 
     [Fact]
-    public async Task Execute_UsesCustomResolver_WhenRegistered()
+    public Task Execute_UsesCustomResolver_WhenRegistered()
     {
 
         var mockWriterFactory = new Mock<IWriterFactory>();
@@ -315,6 +313,7 @@ public class RegistryTests
             "custom resolver result",
             It.Is<string>(fileName => fileName.StartsWith("CustomTest") && fileName.EndsWith(".json"))),
             Times.Once);
+        return Task.CompletedTask;
     }
 
     [Fact]

@@ -1,34 +1,31 @@
-﻿using ReportOnFailure.Authentication;
+﻿namespace ReportOnFailure.Interfaces.Reporters;
+
+using Authentication;
+using Enums;
+using System.Net.Http.Headers;
 using System.Text;
 
-namespace ReportOnFailure.Interfaces.Reporters;
-
-using Enums;
-using System.Collections.Generic;
-using System.Net.Http.Headers;
-
-public interface IApiReporter : IReporter
+public interface IBaseApiReporter : IReporter
 {
+
     string BaseUrl { get; set; }
     string Endpoint { get; set; }
-    ApiHttpMethod Method { get; set; }
-    Dictionary<string, string> Headers { get; set; }
-    Dictionary<string, object> QueryParameters { get; set; }
-    string? RequestBody { get; set; }
-    ContentType? RequestContentType { get; set; }
-
-    Encoding ContentEncoding { get; set; }
-
     int TimeoutSeconds { get; set; }
     bool FollowRedirects { get; set; }
-    Dictionary<string, string> FormData { get; set; }
+    Encoding ContentEncoding { get; set; }
+
+
+    Dictionary<string, string> Headers { get; set; }
     string? AuthorizationToken { get; set; }
     string? BasicAuthUsername { get; set; }
     string? BasicAuthPassword { get; set; }
-
     IJwtTokenProvider? JwtTokenProvider { get; set; }
 
-    string BuildFullUrl();
+
+    string? RequestBody { get; set; }
+    ContentType? RequestContentType { get; set; }
+
 
     MediaTypeHeaderValue GetContentTypeString();
 }
+

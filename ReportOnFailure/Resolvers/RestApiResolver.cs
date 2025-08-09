@@ -1,28 +1,17 @@
 ﻿using ReportOnFailure.Enums;
+using ReportOnFailure.Factories;
+using ReportOnFailure.Interfaces.Resolvers;
 
 namespace ReportOnFailure.Resolvers;
 
-using Factories;
-using ReportOnFailure.Interfaces.Reporters;
-using ReportOnFailure.Interfaces.Resolvers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-public class ApiResolver : IApiResolver
+public class RestApiResolver : BaseApiResolver<IRestApiReporter>, IRestApiResolver
 {
-    private readonly IResultFormatterFactory _formatterFactory;
     private readonly HttpClient _httpClient;
     private readonly bool _disposeHttpClient;
 
-    public ApiResolver(IResultFormatterFactory formatterFactory, HttpClient? httpClient = null)
+    public RestApiResolver(IResultFormatterFactory formatterFactory, HttpClient? httpClient = null)
+        : base(formatterFactory)
     {
-        _formatterFactory = formatterFactory ?? throw new ArgumentNullException(nameof(formatterFactory));
-
         if (httpClient != null)
         {
             _httpClient = httpClient;
@@ -35,14 +24,16 @@ public class ApiResolver : IApiResolver
         }
     }
 
-    public async Task<string> ResolveAsync(IApiReporter reporter, CancellationToken cancellationToken = default)
+    public override async Task<string> ResolveAsync(IRestApiReporter reporter, CancellationToken cancellationToken = default)
     {
-        if (reporter.JwtTokenProvider != null)
-        {
-            var token = await reporter.JwtTokenProvider.GetTokenAsync(cancellationToken);
-            reporter.Headers["Authorization"] = $"Bearer {token}";
-        }
+        await HandleAuthenticationAsync(reporter, cancellationToken);
 
+        var results = await ExecuteRequestWithRetryAsync(reporter, cancellationToken);
+        return FormatResults(results, reporter.ResultsFormat);
+    }
+
+    protected override async Task<List<Dictionary<string, object?>>> ExecuteRequestAsync(IRestApiReporter reporter, CancellationToken cancellationToken)
+    {
         var request = CreateHttpRequestMessage(reporter);
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -51,42 +42,15 @@ public class ApiResolver : IApiResolver
         using var response = await _httpClient.SendAsync(request, cts.Token);
         var responseContent = await response.Content.ReadAsStringAsync(cts.Token);
 
-        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized && reporter.JwtTokenProvider != null)
-        {
-            try
-            {
-                await reporter.JwtTokenProvider.RefreshTokenAsync(cancellationToken);
-                var newToken = await reporter.JwtTokenProvider.GetTokenAsync(cancellationToken);
-                reporter.Headers["Authorization"] = $"Bearer {newToken}";
-
-                var retryRequest = CreateHttpRequestMessage(reporter);
-                using var retryResponse = await _httpClient.SendAsync(retryRequest, cts.Token);
-                var retryContent = await retryResponse.Content.ReadAsStringAsync(cts.Token);
-
-                var retryResults = ProcessApiResponse(retryResponse, retryContent);
-                return FormatResults(retryResults, reporter.ResultsFormat);
-            }
-            catch
-            {
-                var results = ProcessApiResponse(response, responseContent);
-                return FormatResults(results, reporter.ResultsFormat);
-            }
-        }
-
-        var normalResults = ProcessApiResponse(response, responseContent);
-        return FormatResults(normalResults, reporter.ResultsFormat);
+        return ProcessApiResponse(response, responseContent);
     }
 
-    public string ResolveSync(IApiReporter reporter)
-    {
-        return ResolveAsync(reporter).GetAwaiter().GetResult();
-    }
-
-    private HttpRequestMessage CreateHttpRequestMessage(IApiReporter reporter)
+    private HttpRequestMessage CreateHttpRequestMessage(IRestApiReporter reporter)
     {
         var fullUrl = reporter.BuildFullUrl();
         var httpMethod = ConvertToHttpMethod(reporter.Method);
         var request = new HttpRequestMessage(httpMethod, fullUrl);
+
 
         foreach (var header in reporter.Headers)
         {
@@ -95,6 +59,7 @@ public class ApiResolver : IApiResolver
                 request.Headers.TryAddWithoutValidation(header.Key, header.Value);
             }
         }
+
 
         if (ShouldIncludeContent(reporter.Method))
         {
@@ -107,11 +72,12 @@ public class ApiResolver : IApiResolver
             {
                 var content = new StringContent(
                     reporter.RequestBody,
-                    Encoding.UTF8,
+                    reporter.ContentEncoding,
                     reporter.GetContentTypeString());
 
                 request.Content = content;
             }
+
 
             if (request.Content != null)
             {
@@ -137,7 +103,8 @@ public class ApiResolver : IApiResolver
                 ["Content"] = content,
                 ["ContentLength"] = content.Length,
                 ["ContentType"] = response.Content.Headers.ContentType?.ToString(),
-                ["Url"] = response.RequestMessage?.RequestUri?.ToString()
+                ["Url"] = response.RequestMessage?.RequestUri?.ToString(),
+                ["Timestamp"] = DateTime.UtcNow
             }
         };
 
@@ -147,6 +114,7 @@ public class ApiResolver : IApiResolver
             result[0][$"Header_{header.Key}"] = string.Join(", ", header.Value);
         }
 
+
         if (response.Content?.Headers != null)
         {
             foreach (var header in response.Content.Headers)
@@ -154,6 +122,7 @@ public class ApiResolver : IApiResolver
                 result[0][$"Header_{header.Key}"] = string.Join(", ", header.Value);
             }
         }
+
 
         if (response.TrailingHeaders.Any())
         {
@@ -166,29 +135,24 @@ public class ApiResolver : IApiResolver
         return result;
     }
 
-    private string FormatResults(IReadOnlyCollection<Dictionary<string, object?>> data, ResultsFormat format)
-    {
-        return _formatterFactory.CreateFormatter(format).Format(data);
-    }
-
-    private static System.Net.Http.HttpMethod ConvertToHttpMethod(Enums.ApiHttpMethod method)
+    private static HttpMethod ConvertToHttpMethod(ApiHttpMethod method)
     {
         return method switch
         {
-            Enums.ApiHttpMethod.GET => System.Net.Http.HttpMethod.Get,
-            Enums.ApiHttpMethod.POST => System.Net.Http.HttpMethod.Post,
-            Enums.ApiHttpMethod.PUT => System.Net.Http.HttpMethod.Put,
-            Enums.ApiHttpMethod.PATCH => System.Net.Http.HttpMethod.Patch,
-            Enums.ApiHttpMethod.DELETE => System.Net.Http.HttpMethod.Delete,
-            Enums.ApiHttpMethod.HEAD => System.Net.Http.HttpMethod.Head,
-            Enums.ApiHttpMethod.OPTIONS => System.Net.Http.HttpMethod.Options,
-            _ => System.Net.Http.HttpMethod.Get
+            ApiHttpMethod.GET => HttpMethod.Get,
+            ApiHttpMethod.POST => HttpMethod.Post,
+            ApiHttpMethod.PUT => HttpMethod.Put,
+            ApiHttpMethod.PATCH => HttpMethod.Patch,
+            ApiHttpMethod.DELETE => HttpMethod.Delete,
+            ApiHttpMethod.HEAD => HttpMethod.Head,
+            ApiHttpMethod.OPTIONS => HttpMethod.Options,
+            _ => HttpMethod.Get
         };
     }
 
-    private static bool ShouldIncludeContent(Enums.ApiHttpMethod method)
+    private static bool ShouldIncludeContent(ApiHttpMethod method)
     {
-        return method is Enums.ApiHttpMethod.POST or Enums.ApiHttpMethod.PUT or Enums.ApiHttpMethod.PATCH;
+        return method is ApiHttpMethod.POST or ApiHttpMethod.PUT or ApiHttpMethod.PATCH;
     }
 
     private static bool IsContentHeader(string headerName)
@@ -196,14 +160,17 @@ public class ApiResolver : IApiResolver
         return headerName.Equals("Content-Type", StringComparison.OrdinalIgnoreCase) ||
                headerName.Equals("Content-Length", StringComparison.OrdinalIgnoreCase) ||
                headerName.Equals("Content-Encoding", StringComparison.OrdinalIgnoreCase) ||
-               headerName.Equals("Content-Language", StringComparison.OrdinalIgnoreCase);
+               headerName.Equals("Content-Language", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-Disposition", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-Range", StringComparison.OrdinalIgnoreCase);
     }
 
-    public void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        if (_disposeHttpClient)
+        if (disposing && _disposeHttpClient)
         {
             _httpClient?.Dispose();
         }
+        base.Dispose(disposing);
     }
 }

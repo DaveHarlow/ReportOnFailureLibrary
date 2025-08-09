@@ -129,8 +129,8 @@ public class Registry : IRegistry
 
         registry.RegisterResolver<IDbReporter, IDbResolver>(
             new DbResolver(formatterFactory, dbProviderFactory));
-        registry.RegisterResolver<IApiReporter, IApiResolver>(
-            new ApiResolver(formatterFactory));
+        registry.RegisterResolver<IRestApiReporter, IRestApiResolver>(
+            new RestApiResolver(formatterFactory));
 
         return registry;
     }

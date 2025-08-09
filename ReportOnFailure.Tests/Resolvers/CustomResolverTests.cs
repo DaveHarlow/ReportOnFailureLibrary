@@ -4,12 +4,62 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text.Json;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
+using WireMock.Server;
+using WireMock.Settings;
 using static ReportOnFailure.Tests.Reporters.CustomReporterTests;
 
 namespace ReportOnFailure.Tests.Resolvers;
 
-public class CustomResolverTests
+public class CustomResolverTests : IDisposable
 {
+    private readonly WireMockServer _mockServer;
+
+    public CustomResolverTests()
+    {
+
+        _mockServer = WireMockServer.Start(new WireMockServerSettings
+        {
+            Port = 0,
+            StartAdminInterface = false
+        });
+
+
+        SetupMockEndpoints();
+    }
+
+    public void Dispose()
+    {
+        _mockServer?.Stop();
+        _mockServer?.Dispose();
+    }
+
+    private void SetupMockEndpoints()
+    {
+
+        _mockServer
+            .Given(Request.Create().WithPath("/api/health").UsingGet())
+            .RespondWith(Response.Create()
+                .WithStatusCode(200)
+                .WithHeader("Content-Type", "application/json")
+                .WithBody("{\"status\":\"healthy\",\"timestamp\":\"2024-01-01T00:00:00Z\"}"));
+
+
+        _mockServer
+            .Given(Request.Create().WithPath("/api/slow").UsingGet())
+            .RespondWith(Response.Create()
+                .WithStatusCode(200)
+                .WithDelay(TimeSpan.FromSeconds(30))
+                .WithBody("This should timeout"));
+
+        _mockServer
+            .Given(Request.Create().WithPath("/api/notfound").UsingGet())
+            .RespondWith(Response.Create()
+                .WithStatusCode(404)
+                .WithBody("Not Found"));
+    }
+
     #region Custom File Resolver Tests
 
     [Fact]
@@ -193,7 +243,38 @@ public class CustomResolverTests
     #region Custom Network Resolver Tests
 
     [Fact]
-    public async Task CustomNetworkResolver_ResolveAsync_ReturnsNetworkStatus()
+    public async Task CustomNetworkResolver_ResolveAsync_WithMockServer_ReturnsNetworkStatus()
+    {
+
+        var resolver = new CustomNetworkResolver();
+        var mockServerUri = new Uri(_mockServer.Urls[0]);
+
+        var reporter = new CustomNetworkReporter()
+            .WithHostname(mockServerUri.Host)
+            .WithPort(mockServerUri.Port)
+            .WithTimeout(5000)
+            .WithIncludePingTest(true);
+
+
+        var result = await resolver.ResolveAsync(reporter);
+
+
+        Assert.NotNull(result);
+        Assert.Contains("Hostname", result);
+        Assert.Contains(mockServerUri.Host, result);
+        Assert.Contains("Port", result);
+        Assert.Contains(mockServerUri.Port.ToString(), result);
+        Assert.Contains("PingResult", result);
+
+
+        var jsonResult = JsonSerializer.Deserialize<Dictionary<string, object>>(result);
+        Assert.NotNull(jsonResult);
+        Assert.True(jsonResult.ContainsKey("PortConnectable"));
+        Assert.Equal("True", jsonResult["PortConnectable"].ToString());
+    }
+
+    [Fact]
+    public async Task CustomNetworkResolver_ResolveAsync_WithLocalhostPing_ReturnsSuccessfulPing()
     {
 
         var resolver = new CustomNetworkResolver();
@@ -208,20 +289,25 @@ public class CustomResolverTests
 
 
         Assert.NotNull(result);
-        Assert.Contains("Hostname", result);
         Assert.Contains("127.0.0.1", result);
-        Assert.Contains("Port", result);
         Assert.Contains("PingResult", result);
+
+
+        var jsonResult = JsonSerializer.Deserialize<Dictionary<string, object>>(result);
+        Assert.NotNull(jsonResult);
+        Assert.True(jsonResult.ContainsKey("PingResult"));
     }
 
     [Fact]
-    public void CustomNetworkResolver_ResolveSync_WithoutPingTest_ExcludesPingData()
+    public void CustomNetworkResolver_ResolveSync_WithMockServer_WithoutPingTest_ExcludesPingData()
     {
 
         var resolver = new CustomNetworkResolver();
+        var mockServerUri = new Uri(_mockServer.Urls[0]);
+
         var reporter = new CustomNetworkReporter()
-            .WithHostname("example.com")
-            .WithPort(443)
+            .WithHostname(mockServerUri.Host)
+            .WithPort(mockServerUri.Port)
             .WithIncludePingTest(false);
 
 
@@ -229,9 +315,63 @@ public class CustomResolverTests
 
 
         Assert.NotNull(result);
-        Assert.Contains("example.com", result);
-        Assert.Contains("443", result);
+        Assert.Contains(mockServerUri.Host, result);
+        Assert.Contains(mockServerUri.Port.ToString(), result);
         Assert.DoesNotContain("PingResult", result);
+    }
+
+    [Fact]
+    public async Task CustomNetworkResolver_ResolveAsync_WithTimeoutScenario_ReturnsTimeoutError()
+    {
+
+        var resolver = new CustomNetworkResolver();
+        var reporter = new CustomNetworkReporter()
+            .WithHostname("10.255.255.1")
+            .WithPort(12345)
+            .WithTimeout(1000)
+            .WithIncludePingTest(false);
+
+
+        var result = await resolver.ResolveAsync(reporter);
+
+
+        Assert.NotNull(result);
+        Assert.Contains("10.255.255.1", result);
+        Assert.Contains("12345", result);
+
+
+        var jsonResult = JsonSerializer.Deserialize<Dictionary<string, object>>(result);
+        Assert.NotNull(jsonResult);
+        Assert.True(jsonResult.ContainsKey("PortConnectable"));
+        Assert.Equal("False", jsonResult["PortConnectable"].ToString());
+    }
+
+    [Fact]
+    public async Task CustomNetworkResolver_ResolveAsync_WithInvalidHostname_ReturnsError()
+    {
+
+        var resolver = new CustomNetworkResolver();
+        var reporter = new CustomNetworkReporter()
+            .WithHostname("invalid-hostname-that-does-not-exist-12345.com")
+            .WithPort(80)
+            .WithTimeout(2000)
+            .WithIncludePingTest(true);
+
+
+        var result = await resolver.ResolveAsync(reporter);
+
+
+        Assert.NotNull(result);
+        Assert.Contains("invalid-hostname-that-does-not-exist-12345.com", result);
+
+
+        var jsonResult = JsonSerializer.Deserialize<Dictionary<string, object>>(result);
+        Assert.NotNull(jsonResult);
+        Assert.True(jsonResult.ContainsKey("PortConnectable"));
+        Assert.Equal("False", jsonResult["PortConnectable"].ToString());
+
+
+        Assert.True(jsonResult.ContainsKey("PingResult"));
     }
 
     #endregion
@@ -298,6 +438,64 @@ public class CustomResolverTests
 
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
             networkResolver.ResolveAsync(reporter, cts.Token));
+    }
+
+    #endregion
+
+    #region WireMock Integration Tests
+
+    [Fact]
+    public async Task CustomNetworkResolver_WithWireMockServer_CanTestDifferentStatusCodes()
+    {
+
+        _mockServer
+            .Given(Request.Create().WithPath("/test/status").UsingGet())
+            .RespondWith(Response.Create()
+                .WithStatusCode(503)
+                .WithBody("Service Unavailable"));
+
+        var resolver = new CustomNetworkResolver();
+        var mockServerUri = new Uri(_mockServer.Urls[0]);
+
+        var reporter = new CustomNetworkReporter()
+            .WithHostname(mockServerUri.Host)
+            .WithPort(mockServerUri.Port)
+            .WithTimeout(5000)
+            .WithIncludePingTest(false);
+
+
+        var result = await resolver.ResolveAsync(reporter);
+
+
+        Assert.NotNull(result);
+        var jsonResult = JsonSerializer.Deserialize<Dictionary<string, object>>(result);
+        Assert.NotNull(jsonResult);
+
+
+        Assert.Equal("True", jsonResult["PortConnectable"].ToString());
+        Assert.Equal("Success", jsonResult["ConnectionStatus"].ToString());
+    }
+
+    [Fact]
+    public async Task CustomNetworkResolver_WithMockServerDown_ReturnsConnectionFailure()
+    {
+        var resolver = new CustomNetworkResolver();
+        var reporter = new CustomNetworkReporter()
+            .WithHostname("127.0.0.1")
+            .WithPort(12345)
+            .WithTimeout(1000)
+            .WithIncludePingTest(false);
+
+
+        var result = await resolver.ResolveAsync(reporter);
+
+
+        Assert.NotNull(result);
+        var jsonResult = JsonSerializer.Deserialize<Dictionary<string, object>>(result);
+        Assert.NotNull(jsonResult);
+
+        Assert.Equal("False", jsonResult["PortConnectable"].ToString());
+        Assert.Contains("refused", jsonResult["ConnectionStatus"].ToString().ToLower());
     }
 
     #endregion
@@ -517,8 +715,21 @@ public class CustomResolverTests
                     if (!IPAddress.TryParse(reporter.Hostname, out ipAddress))
                     {
 
-                        var hostEntry = await System.Net.Dns.GetHostEntryAsync(reporter.Hostname, cancellationToken);
-                        ipAddress = hostEntry.AddressList.FirstOrDefault();
+                        try
+                        {
+                            var hostEntry = await System.Net.Dns.GetHostEntryAsync(reporter.Hostname, cancellationToken);
+                            ipAddress = hostEntry.AddressList.FirstOrDefault();
+                        }
+                        catch (Exception dnsEx)
+                        {
+                            result["PingResult"] = new
+                            {
+                                Status = "Failed",
+                                Error = $"DNS resolution failed: {dnsEx.Message}",
+                                Success = false
+                            };
+                            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+                        }
                     }
 
                     if (ipAddress != null)

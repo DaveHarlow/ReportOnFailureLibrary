@@ -61,7 +61,7 @@ public class EndToEndTest : IDisposable
             .WithFileNamePrefix("ActiveUsers");
 
 
-        var apiReporter = new ApiReporter()
+        var apiReporter = new RestApiReporter()
             .WithBaseUrl(_mockApiServer.Urls[0])
             .WithEndpoint("/api/system/status")
             .WithMethod(ApiHttpMethod.GET)
@@ -140,7 +140,7 @@ public class EndToEndTest : IDisposable
 
         using var archive = ZipFile.OpenRead(createdFiles[0]);
         var entry = Assert.Single(archive.Entries);
-        Assert.True(entry.Name.EndsWith(".csv"));
+        Assert.EndsWith(".csv", entry.Name);
 
         using var stream = entry.Open();
         using var reader = new StreamReader(stream);
@@ -203,7 +203,7 @@ public class EndToEndTest : IDisposable
             .WithDestinationLocation(_testOutputDirectory)
             .WithCompression();
 
-        var apiReporter = new ApiReporter()
+        var apiReporter = new RestApiReporter()
             .WithBaseUrl(_mockApiServer.Urls[0])
             .WithEndpoint("/api/protected")
             .WithMethod(ApiHttpMethod.GET)
@@ -247,7 +247,7 @@ public class EndToEndTest : IDisposable
             .WithResultsFormat(ResultsFormat.Json)
             .WithFileNamePrefix("SyncReport");
 
-        var asyncApiReporter = new ApiReporter()
+        var asyncApiReporter = new RestApiReporter()
             .WithBaseUrl(_mockApiServer.Urls[0])
             .WithEndpoint("/api/system/status")
             .WithMethod(ApiHttpMethod.GET)
