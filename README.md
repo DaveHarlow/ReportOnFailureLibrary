@@ -16,6 +16,14 @@ ROFL helps developers and testers gather debugging information automatically whe
 
 dotnet package add ReportOnFailureLibrary
 
+## Usage
+
+1. Create a registry in your E2E or integration test. Configure the output location.
+2. Add reporters that are relevant to the test as a whole.
+3. Add reporters that are relevant for the next part of the test.
+4. When part of the test passes, remove any reporters you no longer care about and add new ones for upcoming parts of the Test.
+5. If the test fails, call the registry to execute in the teardown.
+
 ## Quick Start
 
 ```csharp
@@ -160,7 +168,7 @@ registry.RegisterReporter(dbReporter);
 Collect data from REST APIs:
 
 ```csharp
-var apiReporter = new ApiReporter()
+var restApiReporter = new restApiReporter()
     .WithBaseUrl("https://api.example.com")
     .WithEndpoint("/v1/status")
     .WithMethod(HttpMethod.GET)
@@ -171,7 +179,7 @@ var apiReporter = new ApiReporter()
     .WithResultsFormat(ResultsFormat.Json)
     .WithFileNamePrefix("ApiStatus");
 
-registry.RegisterReporter(apiReporter);
+registry.RegisterReporter(restApiReporter);
 ```
 
 **Authentication options:**
@@ -211,6 +219,13 @@ registry.RegisterReporter(paymentServiceReporter);
 
 // Configuration data
 registry.RegisterReporter(appConfigReporter);
+```
+
+### Unregister Reporters
+
+```csharp
+// Database state
+registry.UnregisterReporter(userStateReporter);
 ```
 
 ### Reporter-Specific Settings
@@ -424,8 +439,6 @@ Failed reports generate error files with diagnostic information rather than thro
 ## Requirements
 
 - .NET 8.0 or .NET 9.0
-- Appropriate database drivers for your target databases
-- File system write permissions for the destination location
 
 ## License
 
